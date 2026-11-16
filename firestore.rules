@@ -1,0 +1,70 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function room(roomId) {
+      return get(/databases/$(database)/documents/rooms/$(roomId)).data;
+    }
+    function isMember(roomId) {
+      return signedIn() && request.auth.uid in room(roomId).members;
+    }
+    function isRevealed(roomId) {
+      return room(roomId).status == 'revealed';
+    }
+
+    match /rooms/{roomId} {
+      // A signed-in user may fetch a room by its high-entropy invite code to join.
+      // Listing rooms is intentionally disabled.
+      allow get: if signedIn();
+      allow list: if false;
+
+      allow create: if signedIn()
+        && request.resource.data.members == [request.auth.uid]
+        && request.resource.data.status == 'active'
+        && request.resource.data.done is map;
+
+      allow update: if signedIn()
+        && request.auth.uid in resource.data.members
+        && request.resource.data.members == resource.data.members
+        && request.resource.data.created == resource.data.created
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['done', 'status'])
+        && request.resource.data.done is map
+        && request.resource.data.done.diff(resource.data.done).affectedKeys().hasOnly([request.auth.uid])
+        && request.resource.data.done[request.auth.uid] == true
+        && (
+          request.resource.data.status == resource.data.status
+          || (
+            request.resource.data.status == 'revealed'
+            && resource.data.status == 'active'
+            && resource.data.members.size() == 2
+            && request.resource.data.done[resource.data.members[0]] == true
+            && request.resource.data.done[resource.data.members[1]] == true
+          )
+        );
+
+      // Joining is a separate, narrowly scoped membership transition.
+      allow update: if signedIn()
+        && resource.data.members is list
+        && resource.data.members.size() == 1
+        && request.resource.data.members is list
+        && request.resource.data.members.size() == 2
+        && request.resource.data.members[0] == resource.data.members[0]
+        && request.resource.data.members[1] == request.auth.uid
+        && request.auth.uid != resource.data.members[0]
+        && request.resource.data.created == resource.data.created
+        && request.resource.data.status == resource.data.status
+        && request.resource.data.done == resource.data.done;
+
+      match /answers/{ownerUid}/items/{answerId} {
+        allow read: if isMember(roomId)
+          && (request.auth.uid == ownerUid || isRevealed(roomId));
+        allow create, update: if isMember(roomId)
+          && request.auth.uid == ownerUid
+          && request.resource.data.uid == request.auth.uid
+          && request.resource.data.qid is string
+          && request.resource.data.text is string;
+        allow delete: if isMember(roomId) && request.auth.uid == ownerUid;
+      }
+    }
+  }
+}
