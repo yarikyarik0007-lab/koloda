@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Колода для пар — полная версия</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@500;600&family=Manrope:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F2ECF8; --ink:#241B38; --muted:#6B6280; --card:#FFFFFF; --line:#DDD3EB;
+  --accent:#D6456B; --accent-ink:#FFFFFF; --chip:#E7DEF3;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#1D1630; --ink:#F3ECFA; --muted:#A99FBF; --card:#2B2142; --line:#3C3059;
+    --accent:#F0708F; --accent-ink:#1D1630; --chip:#352A52; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1D1630; --ink:#F3ECFA; --muted:#A99FBF; --card:#2B2142; --line:#3C3059;
+  --accent:#F0708F; --accent-ink:#1D1630; --chip:#352A52; color-scheme:dark;
+}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font-family:"Manrope",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.5}
+main{max-width:520px;margin:0 auto;padding:20px 18px 28px}
+h1{font-family:"Lora",Georgia,"Times New Roman",serif;font-weight:600;font-size:1.6rem;line-height:1.2;margin:8px 0 6px}
+.lead{color:var(--muted);font-size:.95rem;margin:0 0 18px}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:16px;-webkit-overflow-scrolling:touch}
+.chip{flex:none;border:0;background:var(--chip);color:var(--ink);font:inherit;font-size:.85rem;padding:8px 14px;border-radius:999px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);font-weight:600}
+.chip:focus-visible,.btn:focus-visible,.card:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:22px;min-height:340px;padding:26px 24px;display:flex;flex-direction:column;justify-content:space-between;touch-action:pan-y}
+.card.swap{animation:swap .22s ease-out}
+@keyframes swap{from{opacity:0;transform:translateX(var(--dx,16px))}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.card.swap{animation:none}}
+.cat{color:var(--accent);font-weight:600;font-size:.9rem}
+.q{font-family:"Lora",Georgia,"Times New Roman",serif;font-weight:500;font-size:1.55rem;line-height:1.35;margin:18px 0;max-width:30ch}
+.hint{color:var(--muted);font-size:.85rem;margin:0}
+.bar{height:4px;background:var(--line);border-radius:4px;margin:16px 0 6px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .25s}
+.count{color:var(--muted);font-size:.85rem;text-align:center;margin:0 0 14px}
+.row{display:flex;gap:10px}
+.btn{flex:1;border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit;font-weight:600;padding:14px 10px;border-radius:14px;cursor:pointer}
+.btn.main{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);flex:1.6}
+.btn:disabled{opacity:.4;cursor:default}
+.shuffle{display:block;margin:14px auto 0;background:none;border:0;color:var(--muted);font:inherit;font-size:.9rem;text-decoration:underline;cursor:pointer;padding:8px}
+.end{text-align:center}
+.end .q{margin:24px auto;max-width:24ch}
+#pact{display:none}
+#pact h2{font-family:"Lora",Georgia,serif;font-weight:600;font-size:1.3rem;margin:4px 0 6px}
+#pact label,#pact .lbl{display:block;font-weight:600;font-size:.92rem;margin:16px 0 6px}
+#pact textarea,#pact input{width:100%;font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+#pact textarea{resize:vertical;min-height:84px}
+#pact textarea:focus-visible,#pact input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.names{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.prow{display:flex;gap:10px;margin-top:18px}
+#ans{margin-top:14px}
+.ansgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:380px){.ansgrid{grid-template-columns:1fr}}
+.nm{width:100%;font:inherit;font-weight:600;font-size:.9rem;color:var(--ink);background:transparent;border:0;border-bottom:1px solid var(--line);padding:6px 2px;margin-bottom:6px}
+.at{width:100%;font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px;resize:vertical;min-height:96px}
+.nm:focus-visible,.at:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.at.hid{filter:blur(7px);user-select:none}
+.hbtn{margin:8px 0 0;text-align:left;padding:4px 2px}
+#res{display:none}
+#res h2{font-family:"Lora",Georgia,serif;font-weight:600;font-size:1.3rem;margin:4px 0 6px}
+#res h3{font-size:1rem;margin:22px 0 8px;color:var(--accent)}
+.ri{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:10px}
+.ri p{margin:0 0 6px}.ri .rq{font-weight:600}.ri .rn{color:var(--muted)}
+#room{display:none}
+#room h2{font-family:"Lora",Georgia,serif;font-weight:600;font-size:1.3rem;margin:4px 0 6px}
+#room .lbl{display:block;font-weight:600;font-size:.92rem;margin:22px 0 6px}
+#room input{width:100%;font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;letter-spacing:.06em}
+#room input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+</style>
+</head>
+<body>
+<main>
+  <h1>Колода для пар</h1>
+  <p class="lead">Вытягивайте карточку и отвечайте оба — письменно или вслух, как удобнее. Потом обменяйтесь ответами.</p>
+  <div class="chips" id="chips" role="group" aria-label="Блоки"></div>
+  <div class="card" id="card" tabindex="0" aria-live="polite"></div>
+  <div id="ans"></div>
+  <div class="bar"><i id="fill"></i></div>
+  <p class="count" id="count"></p>
+  <div class="row">
+    <button class="btn" id="prev">Назад</button>
+    <button class="btn main" id="next">Дальше</button>
+  </div>
+  <button class="shuffle" id="shuffle">Перемешать карточки</button>
+<section id="pact">
+<h2>Наши договорённости</h2>
+<p class="lead">Запишите, к чему вы пришли. Текст сохраняется на этом устройстве.</p>
+<label for="p1">Что мы хотим сохранить в наших отношениях навсегда</label><textarea id="p1" rows="3"></textarea>
+<label for="p2">Что мы будем делать чаще</label><textarea id="p2" rows="3"></textarea>
+<label for="p3">Что мы будем делать реже или иначе</label><textarea id="p3" rows="3"></textarea>
+<label for="p4">Как мы делим быт и заботы</label><textarea id="p4" rows="3"></textarea>
+<label for="p5">Как мы говорим о сложном и миримся</label><textarea id="p5" rows="3"></textarea>
+<label for="p6">Наше главное правило</label><textarea id="p6" rows="3"></textarea>
+<span class="lbl">Подписи</span>
+<div class="names"><input id="n1" aria-label="Первое имя" placeholder="Имя"><input id="n2" aria-label="Второе имя" placeholder="Имя"></div>
+<div class="prow"><button class="btn" id="pclear">Очистить</button><button class="btn main" id="pcopy">Скопировать текст</button></div>
+<p class="count" id="pmsg"></p>
+</section>
+<section id="res">
+<h2>Все ответы</h2>
+<p class="lead">Здесь собраны ответы, которые вы записали на карточках.</p>
+<div id="reslist"></div>
+<div class="prow"><button class="btn" id="rdl">Скачать .txt</button><button class="btn main" id="rcopy">Скопировать всё</button></div>
+<p class="count" id="rmsg"></p>
+</section>
+<section id="room">
+<h2>Отвечать вместе</h2>
+<p class="lead">Создайте комнату и отправьте код партнёру или введите код, который вам прислали. Ответы покажутся обоим, когда вы оба ответите.</p>
+<div id="roomidle">
+<div class="prow"><button class="btn main" id="rcreate">Создать комнату</button></div>
+<label class="lbl" for="rcode">Или войдите по коду</label>
+<input id="rcode" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Код комнаты">
+<div class="prow"><button class="btn" id="rjoin">Войти</button></div>
+</div>
+<div id="roomon" style="display:none">
+<p class="lead">Вы в комнате. Код: <b id="rshow"></b></p>
+<p class="lead" id="rstate"></p>
+<div class="prow"><button class="btn" id="rleave">Выйти</button><button class="btn main" id="rcopycode">Скопировать код</button></div>
+</div>
+<p class="count" id="rmsg2"></p>
+<p class="lead">Ответы хранятся на серверах Google (Firebase) и доступны только вам двоим. Код комнаты никому не показывайте.</p>
+</section>
+</main>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+var TITLES={1:"1. Узнаём друг друга ближе",2:"2. Вкусы и любимое",3:"3. Быт и совместная жизнь",4:"4. Развлечения и путешествия",5:"5. Решаем",6:"6. Близость",7:"7. Интим (18+)",8:"8. Наши договорённости",9:"9. Все ответы",10:"Пара"};
+var B1=[
+"Что в моём характере тебя удивило, когда мы только познакомились?",
+"Какую мою маленькую привычку ты находишь милой?",
+"Что помогает мне восстановиться после тяжёлого дня?",
+"Что мне нужно, когда я расстроен(а)? Как ты это понимаешь?",
+"В какие моменты я больше всего становлюсь самим(ой) собой?",
+"Что меня тревожит, но я редко об этом говорю?",
+"Какой страх я ношу в себе с детства?",
+"Что в наших отношениях для меня самое ценное?",
+"Какое наше воспоминание я вспоминаю чаще всего?",
+"Какая мелочь делает мой день лучше?",
+"Какой наш маленький ритуал (сообщение, звонок, привычка) для меня самый важный?",
+"Каким ты запомнил(а) наш первый разговор? Что тебя тогда зацепило?",
+"Какой момент из моего детства сильнее всего меня сформировал?",
+"Что ты хотел(а) бы, чтобы я лучше понимал(а) в тебе?",
+"Что нового ты узнал(а) обо мне за время наших отношений, чего не ожидал(а)?"];
+var B2=[
+"Какое блюдо я могу есть каждую неделю, и оно мне не надоест?",
+"Какой фильм или сериал я пересматривал(а) чаще всего?",
+"Какая песня сразу поднимает мне настроение?",
+"Что я закажу в любимом кафе, если можно выбрать всё что угодно?",
+"Что из того, что я люблю, тебе до сих пор непонятно? Спроси меня об этом.",
+"Какой подарок обрадовал бы меня больше всего? А какой обрадовал бы тебя? Сравним.",
+"Куда я бы поехал(а) в идеальный отпуск? А ты? Куда поедем вместе?",
+"Какую мою странную привычку ты замечаешь, но ни разу не обсуждал(а)?",
+"Что из моего детства ты хотел(а) бы увидеть своими глазами: фото, любимое место, игрушку?",
+"Каким должен быть наш идеальный выходной? Где мы совпали, а где нет?",
+"Что бы тебе хотелось приготовить или попробовать вместе со мной в первый раз?",
+"Расскажи то, что я о тебе точно не знаю, но, по-твоему, должен(на) узнать.",
+"Какое занятие нам стоит попробовать вместе, но мы всё откладывали?",
+"Какое моё качество ты полюбил(а) не сразу, а со временем?",
+"Назовите друг про друга любимый цвет, еду и фильм, а потом сверьтесь. Кто был точнее?"];
+var B3=[
+"Каким должно быть наше идеальное утро вместе?",
+"Что в доме для тебя должно быть всегда на своих местах?",
+"Какие домашние дела ты любишь, а какие терпеть не можешь?",
+"Как нам лучше делить обязанности по дому, чтобы никто не чувствовал себя перегруженным?",
+"Какую мою бытовую привычку ты находишь забавной?",
+"Какая бытовая мелочь тебя иногда раздражает, но ты редко об этом говоришь?",
+"Как выглядит твой идеальный вечер дома?",
+"Что нам приятнее готовить вместе, а что лучше каждому по отдельности?",
+"Как нам лучше вести общие расходы: общий бюджет, раздельный или смешанный? Почему?",
+"Сколько личного пространства тебе нужно, когда мы рядом?",
+"Какой уголок в нашем доме ты бы обустроил(а) в первую очередь?",
+"Какие правила в нашем доме должны быть обязательно, а какие можно нарушать?",
+"Как ты хочешь отмечать праздники и дни рождения: шумно или тихо?",
+"Что для тебя значит «чувствовать себя дома» рядом со мной?",
+"Что я мог(ла) бы делать по дому чуть иначе, чтобы тебе было приятнее?"];
+var B4=[
+"Какое место в мире ты мечтаешь увидеть вместе со мной?",
+"Какое путешествие в нашей жизни ты вспоминаешь с самой тёплой улыбкой?",
+"Как выглядит идеальный день в незнакомом городе: с планом или без?",
+"Что для тебя важнее в поездке: приключения, отдых или вкусная еда?",
+"Какое необычное занятие ты хотел(а) бы попробовать со мной хотя бы раз в жизни?",
+"Какой фильм или сериал нам стоит посмотреть вместе в ближайшее время?",
+"Что ты любишь делать на выходных, чего мы ещё ни разу не делали вместе?",
+"Что мы точно возьмём с собой в путешествие, а что оставим дома?",
+"Как ты хочешь провести наш следующий отпуск?",
+"Какое наше свидание ты запомнил(а) лучше всего? Что в нём было особенного?",
+"Какое свидание ты хотел(а) бы организовать для меня и никогда не решался(ась)?",
+"Что нам нужно сделать вместе до конца этого года?",
+"Какое место рядом с нами мы ещё не открыли, но обязательно должны посетить?",
+"Какую традицию для наших путешествий ты хотел(а) бы создать?",
+"Если бы у нас был один день, неделя и месяц на что угодно, как бы мы провели каждый срок?"];
+var B5=[
+"Что в наших отношениях ты хотел(а) бы оставить навсегда неизменным?",
+"Как ты понимаешь, что нам нужно поговорить о чём-то серьёзном?",
+"Как тебе легче говорить о проблемах: сразу, после паузы или письменно?",
+"Что я могу сказать или сделать, чтобы тебе было легче начать трудный разговор?",
+"Что в наших спорах тебя расстраивает больше всего?",
+"Как ты хочешь, чтобы мы мирились после ссоры?",
+"Что мне нужно знать о тебе, чтобы лучше понимать тебя в споре?",
+"О какой теме ты хотел(а) бы поговорить, но пока не решался(ась) начать?",
+"Что в нашем общении ты хотел(а) бы изменить, чтобы нам обоим было легче?",
+"Как нам лучше решать разногласия: сразу, на следующий день или в специально выбранное время?",
+"Что для тебя значит «почувствовать, что тебя услышали»?",
+"Что ты хотел(а) бы, чтобы мы делали чаще, а что реже?",
+"Как нам лучше поддерживать друг друга в трудные периоды?",
+"О чём нам стоит договориться уже сейчас, чтобы потом не спорить?",
+"Какое главное правило наших отношений мы можем записать и всегда помнить?"];
+var B6=[
+"Какие мои объятия тебе нравятся больше всего: долгие, крепкие или спонтанные?",
+"Какое моё прикосновение сразу тебя успокаивает?",
+"Какие слова любви ты хочешь слышать от меня чаще?",
+"Что я могу сделать, чтобы ты почувствовал(а) себя самым(ой) любимым(ой)?",
+"Как ты чувствуешь, что мы близки, даже когда молчим?",
+"Когда ты в последний раз сильно соскучился(ась) по мне? Что ты тогда почувствовал(а)?",
+"Какой поцелуй из нашей истории ты запомнил(а) лучше всего?",
+"Что для тебя значит «быть рядом»: физически, в мыслях или в разговоре?",
+"Какой наш момент нежности ты бы повторил(а) прямо сейчас?",
+"Что помогает тебе чувствовать себя в безопасности рядом со мной?",
+"Как ты любишь показывать любовь: словами, делами, подарками, прикосновениями или временем вместе?",
+"Какой близости, кроме физической, тебе сейчас не хватает?",
+"Какая мелочь, которую я делаю, заставляет твоё сердце биться быстрее?",
+"Что мы можем делать каждый день, чтобы быть ближе друг к другу?",
+"Что ты хочешь сказать мне прямо сейчас, но не решался(ась)?"];
+var B7=[
+"Что тебя больше всего возбуждает: слова, прикосновения, взгляды или что-то ещё?",
+"Как ты любишь начинать близость: спонтанно или с настроем заранее?",
+"Какие мои прикосновения тебе нравятся больше всего?",
+"Какие позы нравятся тебе больше всего, и что именно в них приятно?",
+"Какая поза или действие не приносят тебе удовольствия? Скажи спокойно, без вины, мне важно это знать.",
+"Что я делаю в близости такого, что тебе особенно нравится?",
+"Что ты хотел(а) бы, чтобы я делал(а) чаще или по-другому?",
+"Какие слова или шёпот во время близости тебя заводят?",
+"Когда и где тебе нравится больше всего: утром, вечером, ночью, в необычных местах?",
+"Что тебе нужно, чтобы расслабиться и почувствовать себя желанным(ой)?",
+"Какую фантазию ты хотел(а) бы обсудить со мной, даже если пробовать пока не готов(а)?",
+"Что из нового ты хотел(а) бы попробовать вместе, а что точно нет?",
+"Какая твоя «красная линия» в близости, о которой мне нужно знать?",
+"Как нам лучше говорить друг другу «стоп» или «давай помедленнее» прямо в моменте?",
+"Что ты чувствуешь после близости, и что тебе тогда нужно от меня?"];
+var INTRO="Этот блок для взрослых пар. Отвечайте честно и без осуждения.";
+var BRIDGE="Вы уже узнали друг друга лучше. Дальше пойдёт самое интересное: быт, мечты, близость и то, что вы хотите изменить вместе.";
+var blk=1, list=[], i=0;
+var el=function(id){return document.getElementById(id)};
+
+function make(n){
+  var src=n===1?B1:(n===2?B2:(n===3?B3:(n===4?B4:(n===5?B5:(n===6?B6:B7)))));
+  var l=src.map(function(q,ix){return {q:q,id:ix}});
+  if(n===7) l.unshift({q:INTRO,intro:true});
+  return l;
+}
+function view(){var p=blk>=8;["card","count","shuffle"].forEach(function(id){el(id).style.display=p?"none":""});document.querySelectorAll(".bar,.row").forEach(function(n){n.style.display=p?"none":""});el("pact").style.display=blk===8?"block":"none";el("room").style.display=blk===10?"block":"none";el("res").style.display=blk===9?"block":"none";if(p){el("ans").style.display="none"}}
+function build(){view();if(blk>=8){if(blk===9)renderResults();if(blk===10)renderRoom();return}list=make(blk);i=0;draw(0)}
+function qcount(){return list.filter(function(d){return !d.bridge&&!d.intro}).length}
+function draw(dir){
+  var c=el("card");
+  if(i>=list.length){
+    c.innerHTML='<div class="end"><p class="cat">Блок пройден</p><p class="q">Вы узнали друг о друге чуть больше. Запишите, что запомнилось.</p></div><p class="hint"></p>';
+  }else if(list[i].intro){
+    c.innerHTML='<div><p class="cat">18+</p><p class="q"></p></div><p class="hint">Любую карточку можно пропустить без объяснений.</p>';
+    c.querySelector(".q").textContent=list[i].q;
+  }else if(list[i].bridge){
+    c.innerHTML='<div><p class="cat">Продолжение следует</p><p class="q"></p></div><p class="hint">Остальные блоки — в Telegram-боте.</p>';
+    c.querySelector(".q").textContent=list[i].q;
+  }else{
+    c.innerHTML='<div><p class="q"></p></div><p class="hint">Ответьте оба, потом обменяйтесь ответами.</p>';
+    c.querySelector(".q").textContent=list[i].q;
+  }
+  c.querySelector(".hint")&&i>=list.length&&(c.querySelector(".hint").textContent=blk<7?"Дальше — следующий блок.":"Дальше — запишите ваши договорённости.");
+  c.style.setProperty("--dx",(dir>=0?16:-16)+"px");
+  c.classList.remove("swap"); void c.offsetWidth; if(dir!==0)c.classList.add("swap");
+  var n=qcount(), atEnd=i>=list.length, onBridge=!atEnd&&list[i].bridge, onIntro=!atEnd&&list[i].intro, off=(list[0]&&list[0].intro)?1:0;
+  el("fill").style.width=(onIntro?0:((atEnd||onBridge)?100:((i+1-off)/n*100)))+"%";
+  el("count").textContent=atEnd?"Блок пройден":(onBridge?"Блок пройден":(onIntro?"Вступление":(i+1-off)+" из "+n));
+  el("prev").disabled=i===0&&blk===1;
+  renderAns();
+  el("next").textContent=atEnd?(blk<7?"К следующему блоку":"К договорённостям"):(onBridge?"Сначала":"Дальше");
+}
+function go(d){
+  if(d<0&&i===0){ if(blk>1){blk-=1;chips();list=make(blk);i=list.length-1;draw(-1)} return }
+  if(d>0&&i>=list.length){ if(blk<8){blk+=1;chips();build()}else{build()} return }
+  if(d>0&&list[i].bridge){build();return}
+  i+=d; draw(d);
+}
+function chips(){
+  var w=el("chips"); w.innerHTML="";
+  [10,1,2,3,4,5,6,7,8,9].forEach(function(n){
+    var b=document.createElement("button"); b.className="chip"; b.textContent=TITLES[n];
+    b.setAttribute("aria-pressed",n===blk);
+    b.onclick=function(){blk=n;chips();build()};
+    w.appendChild(b);
+  });
+}
+el("next").onclick=function(){go(1)};
+el("prev").onclick=function(){go(-1)};
+el("shuffle").onclick=function(){
+  var qs=list.filter(function(d){return !d.bridge&&!d.intro}), br=list.filter(function(d){return d.bridge}), head=list.filter(function(d){return d.intro});
+  for(var k=qs.length-1;k>0;k--){var j=Math.floor(Math.random()*(k+1));var t=qs[k];qs[k]=qs[j];qs[j]=t}
+  list=head.concat(qs,br); i=0; draw(1);
+};
+var sx=null,card=el("card");
+card.addEventListener("touchstart",function(e){sx=e.touches[0].clientX},{passive:true});
+card.addEventListener("touchend",function(e){
+  if(sx===null)return; var dx=e.changedTouches[0].clientX-sx; sx=null;
+  if(Math.abs(dx)>50)go(dx<0?1:-1);
+});
+document.addEventListener("keydown",function(e){
+  if(blk>=8||/INPUT|TEXTAREA/.test((e.target&&e.target.tagName)||""))return; if(e.key==="ArrowRight")go(1); if(e.key==="ArrowLeft")go(-1);
+});
+var PK=["p1","p2","p3","p4","p5","p6","n1","n2"];
+function pactLoad(){try{PK.forEach(function(k){var v=localStorage.getItem("pact_"+k);if(v!==null)el(k).value=v})}catch(e){}}
+function pactSave(){try{PK.forEach(function(k){localStorage.setItem("pact_"+k,el(k).value)})}catch(e){}}
+PK.forEach(function(k){el(k).addEventListener("input",pactSave)});
+function pactText(){
+ var L=[["Что мы хотим сохранить в наших отношениях навсегда","p1"],["Что мы будем делать чаще","p2"],["Что мы будем делать реже или иначе","p3"],["Как мы делим быт и заботы","p4"],["Как мы говорим о сложном и миримся","p5"],["Наше главное правило","p6"]];
+ var t="Наши договорённости\n\n";
+ L.forEach(function(a){t+=a[0]+":\n"+(el(a[1]).value||"—")+"\n\n"});
+ t+="Подписи: "+(el("n1").value||"…")+" и "+(el("n2").value||"…");
+ return t}
+el("pcopy").onclick=function(){var m=el("pmsg"),t=pactText(),bad="Не удалось скопировать. Выделите текст вручную.";
+ try{navigator.clipboard.writeText(t).then(function(){m.textContent="Скопировано. Можно отправить себе или распечатать."},function(){m.textContent=bad})}catch(e){m.textContent=bad}};
+var armed=false;
+el("pclear").onclick=function(){var b=el("pclear");
+ if(!armed){armed=true;b.textContent="Точно очистить?";setTimeout(function(){armed=false;b.textContent="Очистить"},4000);return}
+ PK.forEach(function(k){el(k).value=""});pactSave();armed=false;b.textContent="Очистить";el("pmsg").textContent="Всё очищено."};
+pactLoad();
+var SRC=[null,B1,B2,B3,B4,B5,B6,B7], MEM={}, hideP={1:false,2:false};
+function sget(k){try{var v=localStorage.getItem("kp_"+k);if(v!==null)return v}catch(e){}return MEM[k]||""}
+function sset(k,v){MEM[k]=v;try{localStorage.setItem("kp_"+k,v)}catch(e){}}
+function nmv(p){return sget("nm"+p)}
+function nmLabel(p){return nmv(p)||("Ответ "+p)}
+function renderAns(){
+  var a=el("ans"), ok=blk<8&&i<list.length&&!list[i].bridge&&!list[i].intro;
+  if(!ok){a.style.display="none";a.innerHTML="";return}
+  a.style.display="";
+  var qid=list[i].id, html='<div class="ansgrid">';
+  [1,2].forEach(function(p){html+='<div><input class="nm" data-p="'+p+'" placeholder="Имя '+p+'" aria-label="Имя '+p+'"><textarea class="at" data-p="'+p+'" rows="4" placeholder="Ваш ответ" aria-label="Ответ"></textarea><button class="shuffle hbtn" data-p="'+p+'"></button></div>'});
+  html+='</div>';
+  a.innerHTML=html;
+  a.className="";
+  Array.prototype.forEach.call(a.querySelectorAll(".nm"),function(n){
+    var p=n.getAttribute("data-p"); n.value=nmv(p);
+    n.addEventListener("input",function(){sset("nm"+p,n.value);var hb=a.querySelector('.hbtn[data-p="'+p+'"]');if(hb)hb.textContent=(hideP[p]?"Показать: ":"Скрыть: ")+(n.value||("ответ "+p))});
+  });
+  Array.prototype.forEach.call(a.querySelectorAll(".at"),function(t){
+    var p=t.getAttribute("data-p"), key="a"+blk+"_"+qid+"_"+p;
+    t.value=sget(key); t.readOnly=hideP[p]; t.classList.toggle("hid",hideP[p]);
+    t.addEventListener("input",function(){sset(key,t.value)});
+  });
+  Array.prototype.forEach.call(a.querySelectorAll(".hbtn"),function(h){
+    var p=h.getAttribute("data-p");
+    h.textContent=(hideP[p]?"Показать: ":"Скрыть: ")+(nmv(p)||("ответ "+p));
+    h.onclick=function(){hideP[p]=!hideP[p];renderAns()};
+  });
+  roomAns(a,qid);
+}
+function collect(){
+  var out=[];
+  for(var n=1;n<=7;n++){
+    var items=[];
+    SRC[n].forEach(function(q,id){
+      var a1=sget("a"+n+"_"+id+"_1"),a2=sget("a"+n+"_"+id+"_2");
+      if(a1||a2)items.push({q:q,a1:a1,a2:a2});
+    });
+    if(items.length)out.push({n:n,items:items});
+  }
+  return out;
+}
+function renderResults(){
+  var box=el("reslist"); box.innerHTML="";
+  var data=collect();
+  if(!data.length){var e=document.createElement("p");e.className="lead";e.textContent="Пока нет ответов. Откройте любой блок и запишите ответы на карточках.";box.appendChild(e);return}
+  data.forEach(function(b){
+    var h=document.createElement("h3");h.textContent=TITLES[b.n].replace(/^\d+\.\s*/,"");box.appendChild(h);
+    b.items.forEach(function(it){
+      var d=document.createElement("div");d.className="ri";
+      var q=document.createElement("p");q.className="rq";q.textContent=it.q;d.appendChild(q);
+      [[1,it.a1],[2,it.a2]].forEach(function(x){
+        if(!x[1])return;
+        var p=document.createElement("p");var s=document.createElement("span");s.className="rn";s.textContent=nmLabel(x[0])+": ";
+        p.appendChild(s);p.appendChild(document.createTextNode(x[1]));d.appendChild(p);
+      });
+      box.appendChild(d);
+    });
+  });
+}
+function resultsText(){
+  var t="Наши ответы\n\n";
+  collect().forEach(function(b){
+    t+=TITLES[b.n].replace(/^\d+\.\s*/,"")+"\n\n";
+    b.items.forEach(function(it){
+      t+=it.q+"\n";
+      if(it.a1)t+=nmLabel(1)+": "+it.a1+"\n";
+      if(it.a2)t+=nmLabel(2)+": "+it.a2+"\n";
+      t+="\n";
+    });
+  });
+  return t;
+}
+el("rcopy").onclick=function(){var m=el("rmsg"),bad="Не удалось скопировать. Выделите текст вручную.";
+  try{navigator.clipboard.writeText(resultsText()).then(function(){m.textContent="Скопировано."},function(){m.textContent=bad})}catch(e){m.textContent=bad}};
+el("rdl").onclick=function(){var m=el("rmsg");
+  try{var b=new Blob([resultsText()],{type:"text/plain;charset=utf-8"}),u=URL.createObjectURL(b),a=document.createElement("a");a.href=u;a.download="nashi-otvety.txt";document.body.appendChild(a);a.click();a.remove();m.textContent="Файл сохраняется."}catch(e){m.textContent="Не удалось сохранить файл. Используйте «Скопировать всё»."}};
+var FB_CFG={apiKey:"AIzaSyCnLhxurSJ8s28GWYcjSjNe_pkgkiwTBrw",authDomain:"koloda-app.firebaseapp.com",projectId:"koloda-app",storageBucket:"koloda-app.firebasestorage.app",messagingSenderId:"886064865472",appId:"1:886064865472:web:b1f53db07c5e22ad744d25"}, db=null, UID=null, ROOM=null, unsubs=[], timers={};
+var authP=Promise.reject(new Error("nofirebase")); authP.catch(function(){});
+try{if(typeof firebase!=="undefined"){firebase.initializeApp(FB_CFG);db=firebase.firestore();authP=firebase.auth().signInAnonymously().then(function(c){UID=c.user.uid;return UID});authP.catch(function(){})}}catch(e){}
+function roomMsg(t){el("rmsg2").textContent=t}
+function errText(e){var c=(e&&e.code)||(e&&e.message)||"";
+  if(c==="nofirebase")return "Нужен интернет: совместный режим сейчас недоступен.";
+  if(c==="auth/operation-not-supported-in-this-environment"||location.protocol==="file:")return "Совместный режим работает только когда страница открыта по ссылке (https://…), а не как файл на телефоне.";
+  if(c==="permission-denied")return "Firebase запретил запись. Проверьте правила доступа Firestore (Firestore Rules).";
+  if(c==="unavailable")return "Нет связи с сервером. Проверьте интернет.";
+  if(c==="auth/operation-not-allowed")return "В Firebase не включён анонимный вход.";
+  if(c==="auth/unauthorized-domain")return "Этот адрес не добавлен в разрешённые домены Firebase.";
+  return "Что-то пошло не так ("+c+").";}
+function genCode(){var a="ABCDEFGHJKLMNPQRSTUVWXYZ23456789",s="",r=new Uint8Array(12);crypto.getRandomValues(r);for(var k=0;k<12;k++){s+=a[r[k]%a.length];if(k===3||k===7)s+="-"}return s}
+function renderRoom(){
+  var on=!!ROOM;
+  el("roomidle").style.display=on?"none":""; el("roomon").style.display=on?"":"none";
+  if(on){el("rshow").textContent=ROOM.id;el("rstate").textContent=ROOM.members>=2?"Партнёр подключился. Можно отвечать.":"Ждём партнёра: отправьте ему код."}
+  if(typeof firebase==="undefined")roomMsg(errText({code:"nofirebase"}));
+  else if(location.protocol==="file:")roomMsg(errText({code:"file"}));
+}
+function stopListen(){unsubs.forEach(function(u){try{u()}catch(e){}});unsubs=[]}
+function startListen(){
+  stopListen();
+  var ref=db.collection("rooms").doc(ROOM.id);
+  unsubs.push(ref.onSnapshot(function(d){
+    if(d.exists){ROOM.members=(d.data().members||[]).length;if(blk===10)renderRoom()}
+  },function(e){roomMsg(errText(e))}));
+  unsubs.push(ref.collection("answers").onSnapshot(function(snap){
+    snap.forEach(function(doc){
+      var d=doc.data(); if(!d||d.uid===UID)return;
+      var m=/^(\d+)_(\d+)$/.exec(d.qid||""); if(!m)return;
+      sset("a"+m[1]+"_"+m[2]+"_2",d.text||""); if(d.name)sset("nm2",d.name);
+    });
+    refreshPartner(); if(blk===9)renderResults();
+  },function(e){roomMsg(errText(e))}));
+}
+function enter(code,n){ROOM={id:code,members:n};sset("room",code);startListen();renderRoom()}
+el("rcreate").onclick=async function(){
+  var btn=el("rcreate");
+  if(btn.disabled)return;
+  btn.disabled=true;
+  roomMsg("Подключаемся к Firebase…");
+  function waitLimit(p,ms,label){
+    return Promise.race([p,new Promise(function(_,reject){setTimeout(function(){var e=new Error(label);e.code="timeout";reject(e)},ms)})]);
+  }
+  try{
+    if(typeof firebase==="undefined"||!db)throw Object.assign(new Error("Firebase SDK не загрузился"),{code:"nofirebase"});
+    await waitLimit(authP,12000,"Не удалось выполнить вход за 12 секунд");
+    if(!UID)throw Object.assign(new Error("Не получен UID"),{code:"auth-failed"});
+    roomMsg("Создаём комнату…");
+    var code=genCode();
+    await waitLimit(db.collection("rooms").doc(code).set({members:[UID],created:Date.now()}),12000,"Firebase не ответил за 12 секунд");
+    enter(code,1);roomMsg("Комната создана. Отправьте код партнёру.");
+  }catch(e){
+    console.error("Room creation failed:",e);
+    if(e&&e.code==="timeout")roomMsg("Сервер не ответил. Проверьте интернет и настройки Firebase (Anonymous Auth и Firestore Rules), затем попробуйте ещё раз.");
+    else if(e&&e.code==="auth-failed")roomMsg("Не удалось войти в Firebase. Проверьте включение анонимного входа.");
+    else roomMsg(errText(e));
+  }finally{btn.disabled=false;}
+};
+el("rjoin").onclick=async function(){
+  var code=el("rcode").value.trim().toUpperCase().replace(/\s+/g,"");
+  if(!code){roomMsg("Введите код комнаты.");return}
+  roomMsg("Входим…");
+  try{
+    await authP; var ref=db.collection("rooms").doc(code), snap=await ref.get();
+    if(!snap.exists){roomMsg("Комната не найдена. Проверьте код.");return}
+    var m=snap.data().members||[];
+    if(m.indexOf(UID)<0){
+      if(m.length>=2){roomMsg("В этой комнате уже двое.");return}
+      await ref.update({members:[m[0],UID]}); m=[m[0],UID];
+    }
+    enter(code,m.length); roomMsg("");
+  }catch(e){roomMsg(errText(e))}
+};
+el("rcopycode").onclick=function(){
+  try{navigator.clipboard.writeText(ROOM.id).then(function(){roomMsg("Код скопирован.")},function(){roomMsg("Не удалось скопировать. Выделите код вручную.")})}catch(e){roomMsg("Не удалось скопировать. Выделите код вручную.")}
+};
+el("rleave").onclick=function(){
+  stopListen(); ROOM=null; sset("room","");
+  var rm=[];try{for(var k=0;k<localStorage.length;k++){var key=localStorage.key(k);if(/^kp_a\d+_\d+_2$/.test(key)||key==="kp_nm2")rm.push(key)}rm.forEach(function(x){localStorage.removeItem(x);delete MEM[x.slice(3)]})}catch(e){}
+  Object.keys(MEM).forEach(function(k){if(/^a\d+_\d+_2$/.test(k)||k==="nm2")delete MEM[k]});
+  roomMsg("Вы вышли из комнаты."); renderRoom();
+};
+function pushAnswer(b,id,text){
+  if(!ROOM||!db||!UID)return; var key=b+"_"+id; clearTimeout(timers[key]);
+  timers[key]=setTimeout(function(){
+    db.collection("rooms").doc(ROOM.id).collection("answers").doc(key+"_"+UID).set({qid:key,uid:UID,text:text,name:nmv(1)||"",ts:Date.now()})
+      .catch(function(e){roomMsg(errText(e))});
+  },600);
+}
+function roomAns(a,qid){
+  if(!ROOM)return;
+  var t1=a.querySelector('.at[data-p="1"]'),t2=a.querySelector('.at[data-p="2"]'),n2=a.querySelector('.nm[data-p="2"]'),b2=a.querySelector('.hbtn[data-p="2"]');
+  n2.readOnly=true; n2.value=nmv(2)||"Партнёр"; t2.readOnly=true; t2.placeholder="Партнёр ещё не ответил"; b2.style.display="none";
+  t2.classList.toggle("hid",!!t2.value.trim()&&!t1.value.trim());
+  t1.addEventListener("input",function(){
+    pushAnswer(blk,qid,t1.value);
+    t2.classList.toggle("hid",!!t2.value.trim()&&!t1.value.trim());
+  });
+}
+function refreshPartner(){
+  if(!ROOM||blk>=8||!list[i]||list[i].bridge||list[i].intro)return;
+  var a=el("ans"),t1=a.querySelector('.at[data-p="1"]'),t2=a.querySelector('.at[data-p="2"]'),n2=a.querySelector('.nm[data-p="2"]');
+  if(!t2)return;
+  if(document.activeElement!==t2)t2.value=sget("a"+blk+"_"+list[i].id+"_2");
+  n2.value=nmv(2)||"Партнёр";
+  t2.classList.toggle("hid",!!t2.value.trim()&&!t1.value.trim());
+}
+(function(){var rid=sget("room");if(rid&&db){authP.then(function(){ROOM={id:rid,members:1};startListen()},function(){})}})();
+chips(); build();
+</script>
+</body>
+</html>
