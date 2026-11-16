@@ -47,7 +47,7 @@ h1,h2,h3{font-family:"Playfair Display",Georgia,serif;font-weight:600;line-heigh
  <div class="panel">
   <button class="btn primary full" id="createRoom">Создать комнату</button>
   <div class="code hidden" id="roomCode"></div>
-  <button class="btn full hidden" id="copyCode">Скопировать приглашение</button>
+  <button class="btn full hidden" id="copyCode">Скопировать приглашение</button><button class="btn primary full hidden" id="beginRoom" style="margin-top:10px">Начать отвечать</button>
   <div style="text-align:center;color:var(--muted);font-size:.8rem;margin:17px 0">или введите код партнёра</div>
   <input class="field" id="joinCode" maxlength="14" autocomplete="off" autocapitalize="characters" placeholder="XXXX-XXXX-XXXX">
   <button class="btn full" id="joinRoom">Войти в комнату</button>
@@ -227,8 +227,9 @@ function makeResults(){var list=el("resultsList");list.innerHTML="";var lines=[]
 el("oneMode").onclick=function(){mode="one";if(!loadLocal()){person=1;index=0;answers={1:{},2:{}};done={1:false,2:false}}show("handoff");el("handoffTitle").textContent=person===2?"С возвращением!":"Вы будете отвечать по очереди";el("handoffText").textContent=person===2?"Продолжим со второго участника.":"Сначала ответит один из вас. Затем мы попросим передать телефон партнёру и скроем предыдущие ответы.";el("startSecond").textContent=person===2?"Продолжить":"Начать вдвоём"};
 el("twoMode").onclick=function(){mode="two";show("roomScreen")};
 el("backHome").onclick=function(){show("home")};
-el("createRoom").onclick=async function(){var b=el("createRoom");b.disabled=true;status("Создаём вашу комнату…");try{await authP;if(!UID)throw new Error("auth-failed");var c=codegen();await db.collection("rooms").doc(c).set({members:[UID],created:Date.now()});ROOM={id:c};person=1;index=0;answers={1:{},2:{}};partnerAnswers={};done={1:false,2:false};el("roomCode").textContent=c;el("roomCode").classList.remove("hidden");el("copyCode").classList.remove("hidden");status("Комната готова. Отправьте код партнёру.");startListen();saveLocal()}catch(e){status(err(e))}finally{b.disabled=false}};
+el("createRoom").onclick=async function(){var b=el("createRoom");b.disabled=true;status("Создаём вашу комнату…");try{await authP;if(!UID)throw new Error("auth-failed");var c=codegen();await db.collection("rooms").doc(c).set({members:[UID],created:Date.now()});ROOM={id:c};person=1;index=0;answers={1:{},2:{}};partnerAnswers={};done={1:false,2:false};el("roomCode").textContent=c;el("roomCode").classList.remove("hidden");el("copyCode").classList.remove("hidden");status("Комната готова. Отправьте код партнёру, затем начинайте.");el("beginRoom").classList.remove("hidden");startListen();saveLocal()}catch(e){status(err(e))}finally{b.disabled=false}};
 el("joinRoom").onclick=async function(){var c=el("joinCode").value.trim().toUpperCase().replace(/\s/g,"");if(!c){status("Введите код комнаты.");return}status("Подключаемся…");try{await authP;var ref=db.collection("rooms").doc(c),snap=await ref.get();if(!snap.exists){status("Комната не найдена. Проверьте код.");return}var m=snap.data().members||[];if(m.indexOf(UID)<0){if(m.length>=2){status("В комнате уже два участника.");return}await ref.update({members:[m[0],UID]})}ROOM={id:c};person=2;index=0;answers={1:{},2:{}};partnerAnswers={};done={1:false,2:false};startListen();saveLocal();status("Вы в комнате! Можно начинать.");setTimeout(startQuiz,500)}catch(e){status(err(e))}};
+el("beginRoom").onclick=function(){startQuiz()};
 el("copyCode").onclick=function(){var txt="Присоединяйся ко мне в Колоде 💗 Код комнаты: "+ROOM.id; navigator.clipboard.writeText(txt).then(function(){status("Приглашение скопировано.")},function(){status("Не удалось скопировать код.")})};
 el("startSecond").onclick=function(){if(mode==="one"&&person===1&&done[1]){person=2;index=0;saveLocal()}startQuiz()};
 el("answer").addEventListener("input",function(){answers[person][index]=this.value;saveLocal();if(mode==="two")pushAnswer(index,this.value)});
