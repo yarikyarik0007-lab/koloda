@@ -347,8 +347,13 @@ function errText(e){var c=(e&&e.code)||(e&&e.message)||"";
   if(c==="auth/operation-not-supported-in-this-environment"||location.protocol==="file:")return "Совместный режим работает только когда страница открыта по ссылке (https://…), а не как файл на телефоне.";
   if(c==="permission-denied")return "Firebase запретил запись. Проверьте правила доступа Firestore (Firestore Rules).";
   if(c==="unavailable")return "Нет связи с сервером. Проверьте интернет.";
-  if(c==="auth/operation-not-allowed")return "В Firebase не включён анонимный вход.";
-  if(c==="auth/unauthorized-domain")return "Этот адрес не добавлен в разрешённые домены Firebase.";
+  if(c==="auth/operation-not-allowed")return "В Firebase не включён Anonymous sign-in (анонимный вход).";
+  if(c==="auth/admin-restricted-operation")return "Firebase запрещает создание анонимного аккаунта. Проверьте Authentication → Sign-in method → Anonymous.";
+  if(c==="auth/too-many-requests")return "Firebase временно ограничил входы с этого устройства или IP. Подождите и попробуйте позже.";
+  if(c==="auth/unauthorized-domain")return "Домен GitHub Pages не добавлен в разрешённые домены Firebase.";
+  if(c==="permission-denied")return "Вход выполнен, но Firestore отклонил запись. Проверьте Firestore Rules.";
+  if(c==="failed-precondition")return "Firestore не готов к записи. Проверьте создание базы данных и её настройки.";
+  if(c==="unavailable")return "Firestore временно недоступен или соединение прервано. Проверьте интернет.";
   return "Что-то пошло не так ("+c+").";}
 function genCode(){var a="ABCDEFGHJKLMNPQRSTUVWXYZ23456789",s="",r=new Uint8Array(12);crypto.getRandomValues(r);for(var k=0;k<12;k++){s+=a[r[k]%a.length];if(k===3||k===7)s+="-"}return s}
 function renderRoom(){
@@ -380,20 +385,22 @@ el("rcreate").onclick=async function(){
   if(btn.disabled)return;
   btn.disabled=true;
   roomMsg("Подключаемся к Firebase…");
-  function waitLimit(p,ms,label){
-    return Promise.race([p,new Promise(function(_,reject){setTimeout(function(){var e=new Error(label);e.code="timeout";reject(e)},ms)})]);
+  function waitLimit(p,ms,label,stage){
+    return Promise.race([p,new Promise(function(_,reject){setTimeout(function(){var e=new Error(label);e.code="timeout-"+stage;reject(e)},ms)})]);
   }
   try{
     if(typeof firebase==="undefined"||!db)throw Object.assign(new Error("Firebase SDK не загрузился"),{code:"nofirebase"});
-    await waitLimit(authP,12000,"Не удалось выполнить вход за 12 секунд");
+    roomMsg("Проверяем анонимный вход…");
+    await waitLimit(authP,15000,"Вход в Firebase не завершился за 15 секунд","auth");
     if(!UID)throw Object.assign(new Error("Не получен UID"),{code:"auth-failed"});
     roomMsg("Создаём комнату…");
     var code=genCode();
-    await waitLimit(db.collection("rooms").doc(code).set({members:[UID],created:Date.now()}),12000,"Firebase не ответил за 12 секунд");
+    await waitLimit(db.collection("rooms").doc(code).set({members:[UID],created:Date.now()}),15000,"Запись комнаты в Firestore не завершилась за 15 секунд","firestore");
     enter(code,1);roomMsg("Комната создана. Отправьте код партнёру.");
   }catch(e){
     console.error("Room creation failed:",e);
-    if(e&&e.code==="timeout")roomMsg("Сервер не ответил. Проверьте интернет и настройки Firebase (Anonymous Auth и Firestore Rules), затем попробуйте ещё раз.");
+    if(e&&e.code==="timeout-auth")roomMsg("Не завершился вход в Firebase (Anonymous Auth). Проверьте интернет, Anonymous provider и Authorized domains.");
+    else if(e&&e.code==="timeout-firestore")roomMsg("Вход прошёл, но Firestore не подтвердил создание комнаты. Проверьте Firestore Database, Rules и соединение.");
     else if(e&&e.code==="auth-failed")roomMsg("Не удалось войти в Firebase. Проверьте включение анонимного входа.");
     else roomMsg(errText(e));
   }finally{btn.disabled=false;}
