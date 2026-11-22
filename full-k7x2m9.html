@@ -396,7 +396,7 @@ function listenRoom(){
   stopListen();
   var ref=db.collection("rooms").doc(ROOM.id), onErr=function(e){roomMsg(errText(e))};
   unsubs.push(ref.onSnapshot(function(d){if(d.exists){ROOM.members=d.data().members||[];afterSync()}},onErr));
-  writePresence(true);presenceTimer=setInterval(function(){writePresence(true)},25000);
+  writePresence(true);presenceTimer=setInterval(function(){writePresence(true);updatePartnerPresence()},25000);
   unsubs.push(ref.collection("presence").onSnapshot(function(snap){
     PRES={};snap.forEach(function(doc){var d=doc.data();if(d&&d.uid)PRES[d.uid]=d});updatePartnerPresence();
   },onErr));
