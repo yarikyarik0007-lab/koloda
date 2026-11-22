@@ -350,7 +350,7 @@ var B=[null,["Что в моём характере тебя удивило, к�
 var INTRO="Этот блок для взрослых пар. Отвечайте честно и без осуждения.", BRIDGE="Вы уже узнали друг друга лучше. Дальше пойдёт самое интересное: быт, мечты, близость и то, что вы хотите изменить вместе.";
 var FB_CFG={apiKey:"AIzaSyCnLhxurSJ8s28GWYcjSjNe_pkgkiwTBrw",authDomain:"koloda-app.firebaseapp.com",projectId:"koloda-app",storageBucket:"koloda-app.firebasestorage.app",messagingSenderId:"886064865472",appId:"1:886064865472:web:b1f53db07c5e22ad744d25"};
 var blk=1, list=[], i=0, MODE=null, MEM={}, hideP={1:false,2:false};
-var db=null, UID=null, ROOM=null, DN={}, REV={}, FETCH={}, PRG={}, PRES={}, unsubs=[], finArmed=false, progressTimers={}, presenceTimer=null;
+var db=null, UID=null, ROOM=null, DN={}, REV={}, FETCH={}, PRG={}, PRES={}, unsubs=[], finArmed=false, progressTimers={}, presenceTimer=null, typingTimer=null, isTyping=false;
 var el=function(id){return document.getElementById(id)};
 function sget(k){try{var v=localStorage.getItem("kp_"+k);if(v!==null)return v}catch(e){}return MEM[k]||""}
 function sset(k,v){MEM[k]=v;try{localStorage.setItem("kp_"+k,v)}catch(e){}}
@@ -383,14 +383,19 @@ function clearR(){
 function stopListen(){unsubs.forEach(function(u){try{u()}catch(e){}});unsubs=[];Object.keys(progressTimers).forEach(function(k){clearTimeout(progressTimers[k])});progressTimers={};if(presenceTimer){clearInterval(presenceTimer);presenceTimer=null}}
 function writePresence(active){
   if(!db||!ROOM||!UID)return Promise.resolve();
-  return db.collection("rooms").doc(ROOM.id).collection("presence").doc(UID).set({uid:UID,active:!!active,lastSeen:Date.now()},{merge:true}).catch(function(e){roomMsg(errText(e))});
+  return db.collection("rooms").doc(ROOM.id).collection("presence").doc(UID).set({uid:UID,active:!!active,lastSeen:Date.now(),typing:!!(active&&isTyping),typingBlock:blk,typingAt:Date.now()},{merge:true}).catch(function(e){roomMsg(errText(e))});
+}
+function setTyping(active){
+  if(typingTimer){clearTimeout(typingTimer);typingTimer=null}
+  if(active){if(!isTyping){isTyping=true;writePresence(true)}typingTimer=setTimeout(function(){isTyping=false;writePresence(true)},8000)}
+  else if(isTyping){isTyping=false;writePresence(true)}
 }
 function updatePartnerPresence(){
   var elp=el("partnerPresence");if(!elp)return;
   if(MODE!=="room"||!ROOM){elp.className="partner-presence";elp.querySelector("span").textContent="";return}
-  var pu=partnerUid(),p=pu&&PRES[pu],online=!!(p&&p.active&&Date.now()-(p.lastSeen||0)<65000);
+  var pu=partnerUid(),p=pu&&PRES[pu],online=!!(p&&p.active&&Date.now()-(p.lastSeen||0)<65000),typing=!!(online&&p.typing&&p.typingBlock===blk&&Date.now()-(p.typingAt||0)<9000);
   elp.className="partner-presence "+(online?"online":"offline");
-  elp.querySelector("span").textContent=online?"Партнёр сейчас в комнате":"Партнёр не в сети · ответы сохраняются на вашем устройстве";
+  elp.querySelector("span").textContent=typing?"Партнёр сейчас отвечает…":(online?"Партнёр сейчас в комнате":"Партнёр не в сети · ответы сохраняются на вашем устройстве");
 }
 function listenRoom(){
   stopListen();
@@ -703,7 +708,8 @@ function renderAns(){
   Array.prototype.forEach.call(a.querySelectorAll(".at"),function(t){
     var p=t.getAttribute("data-p"),key=K(blk,qid,p);
     t.value=sget(key);t.readOnly=room?!!locked:hideP[p];if(!room)t.classList.toggle("hid",hideP[p]);
-    t.addEventListener("input",function(){sset(key,t.value);updateAnswerSaveStatus(room);updateLiveTally();if(room)scheduleProgress(blk)});
+    t.addEventListener("input",function(){sset(key,t.value);updateAnswerSaveStatus(room);updateLiveTally();if(room){setTyping(true);scheduleProgress(blk)}});
+    t.addEventListener("blur",function(){if(room)setTyping(false)});
     t.addEventListener("change",function(){if(room)scheduleProgress(blk)});
   });
   Array.prototype.forEach.call(a.querySelectorAll(".hbtn"),function(h){
