@@ -9,20 +9,13 @@
 <link href="https://fonts.googleapis.com/css2?family=Lora:wght@500;600&family=Manrope:wght@400;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#F2ECF8; --ink:#241B38; --muted:#6B6280; --card:#FFFFFF; --line:#DDD3EB;
-  --accent:#D6456B; --accent-ink:#FFFFFF; --chip:#E7DEF3;
+  --bg:#F8EEE9; --ink:#29443E; --muted:#78827B; --card:#FFFBF8; --line:#F0DCD8;
+  --accent:#E9859A; --accent-ink:#FFFFFF; --chip:#F6DCE2;
+  --sage:#557F70; --sage-dark:#3E6659; --pink-soft:#F7DCE2; --cream:#FFF8F3;
   box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
 }
-@media (prefers-color-scheme:dark){
-  :root:not([data-theme="light"]){
-    --bg:#1D1630; --ink:#F3ECFA; --muted:#A99FBF; --card:#2B2142; --line:#3C3059;
-    --accent:#F0708F; --accent-ink:#1D1630; --chip:#352A52; color-scheme:dark;
-  }
-}
-:root[data-theme="dark"]{
-  --bg:#1D1630; --ink:#F3ECFA; --muted:#A99FBF; --card:#2B2142; --line:#3C3059;
-  --accent:#F0708F; --accent-ink:#1D1630; --chip:#352A52; color-scheme:dark;
-}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:light}}
+:root[data-theme="dark"]{color-scheme:light}
 html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
 *,*::before,*::after{box-sizing:border-box}
 body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font-family:"Manrope",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.5}
@@ -87,10 +80,81 @@ h1{font-family:"Lora",Georgia,"Times New Roman",serif;font-weight:600;font-size:
 .ansgrid.one{grid-template-columns:1fr}
 #fin{margin-top:14px}
 #fin p{color:var(--muted);font-size:.92rem;margin:8px 0}
-/* Единый акцентный цвет для всех основных кнопок */
-.btn,.btn.main{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
-.btn:hover:not(:disabled){filter:brightness(.96)}
+/* Основная кнопка и базовые интерактивные элементы */
+.btn,.btn.main{background:var(--sage);border-color:var(--sage);color:#fff;box-shadow:0 7px 18px rgba(61,94,81,.14)}
+.btn:hover:not(:disabled){filter:brightness(.97)}
 .btn:active:not(:disabled){transform:translateY(1px)}
+/* Романтичная тема «Наедине»: молочный фон, розовые акценты и шалфей */
+body{background:radial-gradient(ellipse at 12% 8%,#F9DDE2 0,transparent 29%),radial-gradient(ellipse at 100% 42%,#F6E0E1 0,transparent 26%),var(--bg)}
+main{max-width:560px;padding:24px 18px 42px}
+h1{font-family:"Manrope",sans-serif;font-size:2.35rem;letter-spacing:-.045em;color:#29443E;text-align:center;margin:0}
+.lead{color:var(--muted)}
+#lobby .brand{text-align:center;position:relative;padding:16px 12px 22px}
+.brand-heart{font-family:Georgia,serif;color:#E9859A;font-size:3rem;line-height:1;margin-bottom:-4px}
+#lobby .brand h1{font-size:clamp(2.5rem,12vw,3.5rem);font-weight:800}
+#lobby .brand .lead{font-size:1.05rem;margin:5px 0 0}
+.brand-spark{position:absolute;right:11%;top:34%;color:#E9859A;font-size:1.25rem}
+.daily-card{position:relative;overflow:hidden;background:linear-gradient(135deg,#FFFCF9 0%,#FFF5F3 65%,#F9E0E5 100%);border:1px solid rgba(255,255,255,.95);border-radius:28px;padding:22px 22px 20px;margin:8px 0 22px;box-shadow:0 12px 28px rgba(115,75,72,.12)}
+.daily-card:after{content:"♡";position:absolute;right:22px;top:40px;font:5rem Georgia,serif;color:rgba(225,119,143,.48);transform:rotate(12deg)}
+.daily-label{display:inline-block;background:#F7CBD5;color:#874B5A;border-radius:999px;padding:7px 15px;font-weight:700;font-size:.9rem}
+.daily-card p{position:relative;z-index:1;font-family:"Lora",Georgia,serif;font-size:1.35rem;line-height:1.35;font-weight:600;max-width:82%;margin:14px 0 9px}
+.daily-card small{color:var(--muted);font-size:.88rem}
+#lobby .name-label{margin:0 0 7px}
+#lobby input{width:100%;font:inherit;color:var(--ink);background:rgba(255,251,248,.92);border:1px solid var(--line);border-radius:16px;padding:14px 15px;outline:none}
+#lobby input:focus{border-color:#E99AAA;box-shadow:0 0 0 3px rgba(233,133,154,.16)}
+.menu-actions{display:grid;gap:13px;margin-top:18px}
+.menu-btn{width:100%;min-height:70px;border-radius:24px;padding:14px 17px;display:flex;align-items:center;gap:15px;text-align:left;font-size:1rem}
+.menu-btn .menu-icon{width:42px;flex:none;text-align:center;font-size:1.8rem;line-height:1;color:var(--sage-dark)}
+.menu-btn .menu-arrow{margin-left:auto;font-size:2rem;font-weight:400;line-height:1}
+.create-btn{min-height:82px;border-radius:28px;background:linear-gradient(115deg,#527D6E,#41695D);border-color:#527D6E;font-size:1.18rem;justify-content:flex-start;padding:16px 22px}
+.create-btn .menu-icon{font-size:2.2rem;color:#fff}
+.create-btn .menu-arrow{color:#fff}
+.join-card{background:rgba(255,251,248,.88);border:1px solid rgba(255,255,255,.95);border-radius:24px;padding:15px;box-shadow:0 7px 18px rgba(115,75,72,.08)}
+.join-title{display:flex;align-items:center;gap:12px;font-weight:700;margin:0 0 10px}
+.join-title .menu-icon{font-size:1.8rem;color:var(--sage)}
+#lobby .join-card input{margin-bottom:10px;letter-spacing:.08em}
+.join-btn{min-height:50px;border-radius:15px;justify-content:center;padding:10px 14px}
+.join-btn .menu-arrow{display:none}
+.local-btn{background:linear-gradient(110deg,#FFFDFC,#F8E6E9);border-color:#F0D6DC;color:var(--ink);min-height:86px}
+.local-btn .menu-label{display:flex;flex-direction:column;gap:3px}
+.local-btn .menu-label small{font-size:.76rem;font-weight:400;color:var(--muted);line-height:1.35}
+.local-btn .menu-icon{font-size:2rem;color:#D97791}
+.results-menu-btn{background:#F4D9E5;border-color:#EEC5D4;color:var(--ink)}
+.results-menu-btn .menu-icon{color:#B65D7A}
+#controw .btn{background:#FDF8F5;color:var(--sage-dark);border-color:var(--line)}
+#lobby .small{font-size:.78rem;line-height:1.5;margin:12px 0}
+.privacy-note{text-align:center}
+.lobby-footer{text-align:center;color:#78827B;font-size:.95rem;margin:28px 12px 4px}
+#rmsg2{min-height:18px;margin:8px 0}
+#game h1{font-size:1.8rem;margin:8px 0 3px}
+#game .lead{text-align:center;font-size:.86rem}
+#game .topbar{margin-bottom:10px}
+#game .topbar .link{background:#FFF9F5;border:1px solid var(--line);border-radius:999px;padding:8px 14px;text-decoration:none;color:var(--sage-dark)}
+#game .chips{padding:4px 0 9px;gap:8px}
+#game .chip{background:#FFF9F5;border:1px solid #F0DCD8;color:#536C62;box-shadow:0 3px 10px rgba(115,75,72,.05)}
+#game .chip[aria-pressed="true"]{background:#F4CBD5;border-color:#EBA7B7;color:#78495A}
+#game .card{background:linear-gradient(145deg,#FFFCF9,#FFF6F3 72%,#F9E4E7);border:1px solid #fff;border-radius:30px;min-height:270px;padding:30px 25px;box-shadow:0 12px 28px rgba(115,75,72,.13);position:relative;overflow:hidden}
+#game .card:after{content:"♡";position:absolute;right:18px;bottom:8px;font:5rem Georgia,serif;color:rgba(226,130,151,.25);pointer-events:none}
+#game .card .q{position:relative;z-index:1;font-family:"Lora",Georgia,serif;font-size:1.5rem;color:#31534A;max-width:26ch}
+#game .card .hint{position:relative;z-index:1}
+#game .cat{color:#B9657C}
+#game #ans{background:rgba(255,251,248,.9);border:1px solid #fff;border-radius:24px;padding:16px;margin-top:16px;box-shadow:0 7px 18px rgba(115,75,72,.07)}
+#game #ans .at{min-height:132px;background:#FFFEFC;border:1px solid #EAD8D4;border-radius:18px;padding:15px;line-height:1.55}
+#game #ans .at:focus{border-color:#E99AAA;outline:3px solid rgba(233,133,154,.15)}
+#game .bar{height:9px;background:#F0DFDC;border-radius:999px;margin:20px 0 8px}
+#game .bar i{background:linear-gradient(90deg,#E9859A,#D96F8B);border-radius:999px}
+#game .count{color:#78827B}
+#game .row .btn{border-radius:17px}
+#game .row .btn.main{background:var(--sage);border-color:var(--sage)}
+#game .shuffle{color:#B56C80;text-decoration:none}
+#fin p{background:#F9E7E9;border-radius:15px;padding:12px 14px;color:#6F5D5D}
+#fin .btn{width:100%;border-radius:18px}
+#res .ri,.ri{background:#FFFBF8;border-color:#F0DCD8;border-radius:18px;box-shadow:0 5px 14px rgba(115,75,72,.05)}
+#res h3{color:#B9657C}
+#pact textarea,#pact input,#room input,#lobby input{border-radius:16px}
+#roomCodeModal .modal-card{border-radius:28px}
+@media(max-width:380px){main{padding-left:14px;padding-right:14px}.daily-card{padding:18px}.daily-card p{font-size:1.2rem}.menu-btn{gap:10px;padding-left:13px;padding-right:13px}}
+
 /* Модальное окно с кодом комнаты */
 #roomCodeModal{position:fixed;inset:0;z-index:1000;display:none;align-items:center;justify-content:center;padding:22px;background:rgba(18,12,30,.68)}
 #roomCodeModal.show{display:flex}
@@ -105,19 +169,34 @@ h1{font-family:"Lora",Georgia,"Times New Roman",serif;font-weight:600;font-size:
 </head>
 <body>
 <main>
-<div id="lobby">
-  <h1>Колода для пар</h1>
-  <p class="lead">Вопросы, чтобы узнать друг друга заново. Как вы хотите играть?</p>
-  <label class="lbl" for="myname">Ваше имя (для игры вдвоём)</label>
-  <input id="myname" autocomplete="off" placeholder="Например, Ярик">
-  <div class="prow"><button class="btn main" id="rcreate">Создать комнату (два телефона)</button></div>
-  <label class="lbl" for="rcode">Или войдите по коду</label>
-  <input id="rcode" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Код комнаты">
-  <div class="prow"><button class="btn" id="rjoin">Войти по коду</button></div>
-  <div class="prow" id="controw" style="display:none"><button class="btn" id="pcont">Продолжить игру в комнате</button></div>
-  <div class="prow"><button class="btn" id="plocal">Играть с одного телефона</button></div>
-  <p class="count" id="rmsg2"></p>
-  <p class="lead small">В игре вдвоём ответы хранятся на серверах Google (Firebase). Партнёр увидит ваши ответы только тогда, когда вы оба завершите блок.</p>
+<div id="lobby" class="lobby-screen">
+  <header class="brand">
+    <div class="brand-heart">♡</div>
+    <h1>Наедине</h1>
+    <p class="lead">Время стать ближе друг к другу</p>
+    <span class="brand-spark">♥</span>
+  </header>
+  <section class="daily-card">
+    <span class="daily-label">♥ Вопрос дня</span>
+    <p>Что помогает тебе чувствовать себя любимым?</p>
+    <small>Ответьте честно и не торопясь ♡</small>
+  </section>
+  <label class="lbl name-label" for="myname">Как к вам обращаться?</label>
+  <input id="myname" autocomplete="off" placeholder="Ваше имя">
+  <div class="menu-actions">
+    <button class="btn main menu-btn create-btn" id="rcreate"><span class="menu-icon">＋</span><span>Создать комнату</span><span class="menu-arrow">›</span></button>
+    <section class="join-card">
+      <div class="join-title"><span class="menu-icon">↪</span><span>Присоединиться к комнате</span></div>
+      <input id="rcode" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Введите код комнаты">
+      <button class="btn menu-btn join-btn" id="rjoin"><span>Войти по коду</span><span class="menu-arrow">›</span></button>
+    </section>
+    <button class="btn menu-btn local-btn" id="plocal"><span class="menu-icon">♡</span><span class="menu-label"><b>Играть с одного телефона</b><small>Проходите игру вдвоём на одном устройстве</small></span><span class="menu-arrow">›</span></button>
+    <button class="btn menu-btn results-menu-btn" id="openResults" type="button" onclick="blk=9;MODE='local';startGame('local');blk=9;chips();build()"><span class="menu-icon">♧</span><span>Результаты</span><span class="menu-arrow">›</span></button>
+    <div class="prow" id="controw" style="display:none"><button class="btn menu-btn" id="pcont">Продолжить игру в комнате</button></div>
+  </div>
+  <p class="count" id="rmsg2" aria-live="polite"></p>
+  <p class="lead small privacy-note">В игре вдвоём партнёр увидит ваши ответы только после того, как вы оба завершите блок.</p>
+  <footer class="lobby-footer">Играйте, делитесь, открывайте друг друга ♡</footer>
 </div>
 <div id="game" style="display:none">
   <div class="topbar"><button class="link" id="back">← В меню</button><span id="roombar" style="display:none">Комната: <b id="rshow"></b> <button class="link" id="rcopycode">Скопировать код</button></span></div>
