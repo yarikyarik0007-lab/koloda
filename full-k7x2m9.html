@@ -508,7 +508,7 @@ function chips(){
     var num=document.createElement("span");num.className="chip-number";num.textContent=n<=7?"ЭТАП "+n:"ВАШЕ";
     var ico=document.createElement("span");ico.className="chip-icon";ico.textContent=m[0];
     top.appendChild(num);top.appendChild(ico);
-    var title=document.createElement("span");title.className="chip-title";title.textContent=TITLES[n].replace(/^\\d+\\.\\s*/,"");
+    var title=document.createElement("span");title.className="chip-title";var cleanTitle=TITLES[n],dot=cleanTitle.indexOf(". ");if(dot>0&&dot<3)cleanTitle=cleanTitle.slice(dot+2);title.textContent=cleanTitle;
     var desc=document.createElement("span");desc.className="chip-desc";desc.textContent=m[2];
     b.appendChild(top);b.appendChild(title);b.appendChild(desc);
     b.onclick=function(){blk=n;chips();build()};
