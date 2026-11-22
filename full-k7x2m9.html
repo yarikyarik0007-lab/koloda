@@ -110,6 +110,27 @@ h1{font-family:"Manrope",sans-serif;font-size:2.35rem;letter-spacing:-.045em;col
 .menu-btn .menu-arrow{margin-left:auto;font-size:2rem;font-weight:400;line-height:1}
 .create-btn{min-height:72px;border-radius:23px;background:linear-gradient(115deg,#527D6E,#41695D);border-color:#527D6E;font-size:1.08rem;justify-content:flex-start;padding:13px 18px}
 .create-btn .menu-icon{font-size:1.9rem;color:#fff}
+/* Ненавязчивый прогресс и более выразительные состояния игры */
+.journey-progress{background:rgba(255,251,248,.76);border:1px solid rgba(255,255,255,.9);border-radius:16px;padding:11px 14px;margin:8px 0 14px;box-shadow:0 4px 12px rgba(115,75,72,.045)}
+.journey-meta{display:flex;justify-content:space-between;gap:10px;color:#78827B;font-size:.78rem;font-weight:700;margin-bottom:8px}
+.journey-meta span:last-child{color:#B9657C}
+.journey-track{height:6px;background:#F0DFDC;border-radius:99px;overflow:hidden}
+.journey-track i{display:block;width:0;height:100%;border-radius:99px;background:linear-gradient(90deg,#E9859A,#557F70);transition:width .35s ease}
+#fin{background:linear-gradient(135deg,#FFFBF8,#F9E8EA);border:1px solid #F0DCD8;border-radius:22px;padding:16px;margin-top:16px;box-shadow:0 7px 18px rgba(115,75,72,.07);animation:fin-in .28s ease-out}
+#fin:empty{display:none!important}
+#fin p{background:rgba(255,255,255,.65);border-radius:13px;padding:11px 12px;margin:8px 0;color:#536C62;line-height:1.5}
+#fin .btn{width:100%;border-radius:16px;margin:5px 0}
+@keyframes fin-in{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+#res h2{margin-bottom:6px}
+#res .results-intro{background:linear-gradient(120deg,#F9E3E7,#FFF9F5);border:1px solid #F1D9DE;border-radius:19px;padding:15px 16px;margin:12px 0 20px;color:#536C62}
+#res .results-intro strong{display:block;font-size:1.05rem;color:#31534A}
+#res .ri{padding:15px 16px;margin:0 0 11px}
+#res .ri .rq{font-family:"Lora",Georgia,serif;font-size:1.08rem;line-height:1.4;color:#31534A;margin-bottom:12px}
+#res .ri p:not(.rq){border-top:1px solid #F1E5E1;padding-top:9px;margin-top:8px;line-height:1.5}
+#res .rn{font-weight:700;color:#B9657C}
+#res h3{display:flex;align-items:center;gap:9px;margin:24px 0 11px;font-size:.95rem;letter-spacing:.01em}
+#res h3:before{content:"♡";font-size:1.2rem;color:#E9859A}
+@media(prefers-reduced-motion:reduce){.journey-track i,#fin{transition:none;animation:none}}
 .create-btn .menu-arrow{color:#fff}
 .join-card{background:rgba(255,251,248,.88);border:1px solid rgba(255,255,255,.95);border-radius:24px;padding:15px;box-shadow:0 7px 18px rgba(115,75,72,.08)}
 .join-title{display:flex;align-items:center;gap:12px;font-weight:700;margin:0 0 10px}
@@ -199,6 +220,7 @@ h1{font-family:"Manrope",sans-serif;font-size:2.35rem;letter-spacing:-.045em;col
   <div class="topbar"><button class="link" id="back">← В меню</button><span id="roombar" style="display:none">Комната: <b id="rshow"></b> <button class="link" id="rcopycode">Скопировать код</button></span></div>
   <h1>Колода для пар</h1>
   <p class="lead" id="lead2"></p>
+  <div class="journey-progress" id="journeyProgress"><div class="journey-meta"><span id="journeyBlock">Блок 1 из 7</span><span id="journeyPercent">0%</span></div><div class="journey-track"><i id="journeyFill"></i></div></div>
   <div class="chips" id="chips" role="group" aria-label="Блоки"></div>
   <div class="card" id="card" tabindex="0" aria-live="polite"></div>
   <div id="ans"></div>
@@ -430,8 +452,10 @@ function draw(dir){
   c.style.setProperty("--dx",(dir>=0?16:-16)+"px");
   c.classList.remove("swap");void c.offsetWidth;if(dir!==0)c.classList.add("swap");
   var n=qcount(),atEnd=i>=list.length,onBridge=!atEnd&&list[i].bridge,onIntro=!atEnd&&list[i].intro,off=(list[0]&&list[0].intro)?1:0;
-  el("fill").style.width=(onIntro?0:((atEnd||onBridge)?100:((i+1-off)/n*100)))+"%";
+  var progress=onIntro?0:((atEnd||onBridge)?100:((i+1-off)/n*100));
+  el("fill").style.width=progress+"%";
   el("count").textContent=atEnd?"Блок пройден":(onBridge?"Блок пройден":(onIntro?"Вступление":(i+1-off)+" из "+n));
+  var jp=el("journeyProgress");if(jp){jp.style.display=blk>=8?"none":"";el("journeyBlock").textContent="Блок "+blk+" из "+lastBlock();el("journeyPercent").textContent=Math.round(progress)+"%";el("journeyFill").style.width=progress+"%";}
   el("prev").disabled=i===0&&blk===1;
   el("next").textContent=atEnd?(blk<lastBlock()?(blk===7?"К договорённостям":"К следующему блоку"):"Сначала"):(onBridge?(CHANNEL_URL?"В Telegram-канал":"Сначала"):"Дальше");
   renderAns();renderFin();
@@ -502,16 +526,16 @@ function missingAnswers(block){
 function renderFin(){
   var f=el("fin");
   if(MODE!=="room"||blk>=8){f.innerHTML="";f.style.display="none";return}
-  f.style.display="";f.innerHTML="";
+  f.style.display="";f.innerHTML="";f.className="";
   var d=DN[blk]||{},last=list.length-1;if(list[last]&&list[last].bridge)last--;
   var onLast=i>=last;
   function add(tag,text){var n=document.createElement(tag);n.textContent=text;f.appendChild(n);return n}
-  if(d.me){
+  if(d.me){f.classList.add("waiting-state");
     if(d.partner&&REV[blk]){
-      add("p","Партнёр тоже закончил блок. Ответы открыты.");
+      add("p","♥ Партнёр тоже закончил блок. Ответы открыты.");
       var b=add("button","Смотреть результаты");b.className="btn main";b.onclick=function(){blk=9;chips();build()};
     }else if(d.partner){add("p","Партнёр закончил. Загружаем ответы…")}
-    else add("p","Ваши ответы отправлены и скрыты. Ждём, пока партнёр закончит…");
+    else add("p","♥ Отличная работа! Ваши ответы сохранены и скрыты. Теперь ждём партнёра — как только он завершит блок, ответы откроются здесь автоматически.");
   }else if(onLast){
     var missing=missingAnswers(blk);
     if(missing.length){
@@ -543,6 +567,10 @@ function collect(){
 }
 function renderResults(){
   var box=el("reslist");box.innerHTML="";var data=collect();
+  var total=data.reduce(function(sum,b){return sum+b.items.length},0);
+  var intro=document.createElement("div");intro.className="results-intro";
+  var strong=document.createElement("strong");strong.textContent=total?("Сохранено ответов: "+total):"Ваши общие открытия";intro.appendChild(strong);
+  var note=document.createElement("span");note.textContent=MODE==="room"?"Здесь собраны ответы из блоков, которые вы оба завершили.":"Все ваши ответы собраны в одном месте — возвращайтесь к ним в любое время.";intro.appendChild(note);box.appendChild(intro);
   if(!data.length){var e=document.createElement("p");e.className="lead";e.textContent=MODE==="room"?"Результаты откроются, когда вы оба завершите блок.":"Пока нет ответов. Откройте любой блок и запишите ответы на карточках.";box.appendChild(e);return}
   data.forEach(function(b){
     var h=document.createElement("h3");h.textContent=TITLES[b.n].replace(/^\d+\.\s*/,"");box.appendChild(h);
