@@ -459,7 +459,7 @@ function qcount(){return list.filter(function(d){return !d.bridge&&!d.intro}).le
 function showBlockRoom(){
   el("blockRoom").style.display="";
   el("questionStage").style.display="none";
-  ["ans","fin","gmsg","fill","count","prev","next","shuffle","pact","res"].forEach(function(id){if(el(id))el(id).style.display="none"});
+  el("pact").style.display="none";el("res").style.display="none";
 }
 function openBlock(n){
   blk=n;chips();build();
