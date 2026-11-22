@@ -658,10 +658,11 @@ document.addEventListener("keydown",function(e){
 function updateAnswerSaveStatus(room){
   var status=el("answerSaveStatus");if(!status)return;
   var copy=status.querySelector(".save-copy"),mark=status.querySelector(".save-mark");
-  var ok=true;try{ok=localStorage.getItem("kp_"+K(blk,list[i]&&list[i].id||0,1))!==null}catch(e){ok=false}
-  status.classList.toggle("error",!ok);status.classList.remove("pending");
-  mark.textContent=ok?"✓":"!";
-  copy.textContent=ok?(room?"Черновик сохранён на этом устройстве · партнёр его не видит":"Ответ сохранён на этом устройстве"):"Не удалось подтвердить сохранение в памяти браузера";
+  var key="kp_"+K(blk,list[i]&&list[i].id||0,1),hasValue=String(sget(K(blk,list[i]&&list[i].id||0,1))||"").length>0,ok=true,exists=false;
+  try{exists=localStorage.getItem(key)!==null}catch(e){ok=false}
+  status.classList.toggle("error",!ok&&hasValue);status.classList.remove("pending");
+  mark.textContent=hasValue?(ok?"✓":"!"):"·";
+  copy.textContent=!hasValue?"Ваш ответ будет сохранён автоматически":(ok?(room?"Черновик сохранён на этом устройстве · партнёр его не видит":"Ответ сохранён на этом устройстве"):"Не удалось подтвердить сохранение в памяти браузера");
 }
 function renderAns(){
   var a=el("ans"),ok=blk<8&&i<list.length&&!list[i].bridge&&!list[i].intro&&MODE;
