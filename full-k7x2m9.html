@@ -22,6 +22,15 @@ body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font-family:
 main{max-width:520px;margin:0 auto;padding:20px 18px 28px}
 h1{font-family:"Lora",Georgia,"Times New Roman",serif;font-weight:600;font-size:1.6rem;line-height:1.2;margin:8px 0 6px}
 .lead{color:var(--muted);font-size:.95rem;margin:0 0 18px}
+.block-room{margin-top:14px}
+.block-room-intro{position:relative;overflow:hidden;text-align:center;padding:25px 19px 22px;border:1px solid #F0DEDA;border-radius:24px;background:radial-gradient(circle at 10% 5%,#F9E4E8 0,transparent 38%),linear-gradient(145deg,#FFFCF8,#F6ECE8);margin-bottom:19px}
+.block-room-mark{display:inline-grid;place-items:center;width:48px;height:48px;border-radius:50%;background:#FFFFFFC9;color:#C9798B;font-size:1.5rem;box-shadow:0 4px 14px #B9657C18}
+.block-room-intro .eyebrow{font-size:.63rem;letter-spacing:.16em;font-weight:800;color:#B9657C;margin:11px 0 5px}
+.block-room-intro h2{font-family:"Lora",Georgia,serif;color:#31534A;font-size:1.48rem;line-height:1.2;margin:0 0 8px}
+.block-room-intro>p:last-child{font-size:.82rem;line-height:1.5;color:#7C7771;max-width:34ch;margin:0 auto}
+.block-room-foot{text-align:center;font-size:.75rem;line-height:1.45;color:#9A8583;margin:13px 8px 5px}
+.stage-tools{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:7px 0 11px}
+#stageName{font-size:.76rem;color:#B9657C;font-weight:700;text-align:right}
 .block-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin:18px 2px 11px}
 .block-heading strong{font-family:"Lora",Georgia,serif;font-size:1.08rem;color:#31534A;font-weight:600}
 .block-heading span{font-size:.72rem;color:#9A8583}
@@ -233,9 +242,15 @@ h1{font-family:"Manrope",sans-serif;font-size:2.35rem;letter-spacing:-.045em;col
   <div class="topbar"><button class="link" id="back">← В меню</button><span id="roombar" style="display:none">Комната: <b id="rshow"></b> <button class="link" id="rcopycode">Скопировать код</button></span></div>
   <h1>Колода для пар</h1>
   <p class="lead" id="lead2"></p>
+  <section id="blockRoom" class="block-room">
+    <div class="block-room-intro"><span class="block-room-mark">♡</span><p class="eyebrow">ВАШЕ ПРОСТРАНСТВО ВДВОЁМ</p><h2>Выберите настроение вечера</h2><p>Каждый блок — отдельная тема для разговора. Начните с того, что откликается вам обоим.</p></div>
+    <div class="block-heading"><strong>Все темы</strong><span>9 разделов · ваш общий путь</span></div>
+    <div class="chips" id="chips" role="group" aria-label="Блоки"></div>
+    <p class="block-room-foot">Не обязательно проходить всё сразу. Возвращайтесь к любому блоку, когда захотите ♡</p>
+  </section>
+  <div id="questionStage" style="display:none">
+  <div class="stage-tools"><button class="link" id="allBlocks">← Все блоки</button><span id="stageName"></span></div>
   <div class="journey-progress" id="journeyProgress"><div class="journey-meta"><span id="journeyBlock">Блок 1 из 7</span><span id="journeyPercent">0%</span></div><div class="journey-track"><i id="journeyFill"></i></div></div>
-  <div class="block-heading"><strong>Ваш путь вдвоём</strong><span>Выберите тему для разговора ♡</span></div>
-  <div class="chips" id="chips" role="group" aria-label="Блоки"></div>
   <div class="card" id="card" tabindex="0" aria-live="polite"></div>
   <div id="ans"></div>
   <div id="fin"></div>
@@ -247,6 +262,7 @@ h1{font-family:"Manrope",sans-serif;font-size:2.35rem;letter-spacing:-.045em;col
     <button class="btn main" id="next">Дальше</button>
   </div>
   <button class="shuffle" id="shuffle">Перемешать карточки</button>
+  </div>
   <section id="pact">
 <h2>Наши договорённости</h2>
 <p class="lead">Запишите, к чему вы пришли. Текст сохраняется на этом устройстве.</p>
@@ -414,6 +430,7 @@ el("pcont").onclick=async function(){
 };
 el("plocal").onclick=function(){saveName();startGame("local")};
 el("back").onclick=function(){showLobby()};
+el("allBlocks").onclick=function(){showBlockRoom();window.scrollTo({top:0,behavior:"smooth"})};
 el("rcopycode").onclick=function(){try{navigator.clipboard.writeText(ROOM.id).then(function(){roomMsg("Код скопирован. Отправьте его партнёру.")},function(){roomMsg("Не удалось скопировать. Выделите код вручную.")})}catch(e){roomMsg("Не удалось скопировать. Выделите код вручную.")}};
 
 /* ---------- лобби и вход в игру ---------- */
@@ -428,7 +445,7 @@ function startGame(mode){
   el("roombar").style.display=mode==="room"?"":"none";
   if(mode==="room")el("rshow").textContent=ROOM.id;
   el("lead2").textContent=mode==="room"?"Отвечайте каждый на своём телефоне. Ответы откроются, когда вы оба завершите блок.":"Вытягивайте карточку и отвечайте оба — письменно или вслух. Потом обменяйтесь ответами.";
-  blk=1;chips();build();
+  blk=1;chips();showBlockRoom();
 }
 
 /* ---------- карточки ---------- */
@@ -439,12 +456,23 @@ function make(n){
   return l;
 }
 function qcount(){return list.filter(function(d){return !d.bridge&&!d.intro}).length}
+function showBlockRoom(){
+  el("blockRoom").style.display="";
+  el("questionStage").style.display="none";
+  ["ans","fin","gmsg","fill","count","prev","next","shuffle","pact","res"].forEach(function(id){if(el(id))el(id).style.display="none"});
+}
+function openBlock(n){
+  blk=n;chips();build();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
 function view(){
   var sec=blk>=8;
-  if(el("journeyProgress"))el("journeyProgress").style.display=sec?"none":"";
+  el("blockRoom").style.display="none";el("questionStage").style.display="";
+  el("journeyProgress").style.display=sec?"none":"";
   ["card","count","shuffle"].forEach(function(id){el(id).style.display=sec?"none":""});
-  document.querySelectorAll("#game .bar,#game .row").forEach(function(n){n.style.display=sec?"none":""});
+  document.querySelectorAll("#questionStage .bar,#questionStage .row").forEach(function(n){n.style.display=sec?"none":""});
   el("pact").style.display=blk===8?"block":"none";el("res").style.display=blk===9?"block":"none";
+  el("stageName").textContent=blk<=7?TITLES[blk].replace(/^\\d+\\.\\s*/,""):TITLES[blk];
   if(sec){el("ans").style.display="none";el("fin").style.display="none"}
 }
 function build(){view();if(blk>=8){if(blk===9)renderResults();return}list=make(blk);i=0;draw(0)}
@@ -511,7 +539,7 @@ function chips(){
     var title=document.createElement("span");title.className="chip-title";var cleanTitle=TITLES[n],dot=cleanTitle.indexOf(". ");if(dot>0&&dot<3)cleanTitle=cleanTitle.slice(dot+2);title.textContent=cleanTitle;
     var desc=document.createElement("span");desc.className="chip-desc";desc.textContent=m[2];
     b.appendChild(top);b.appendChild(title);b.appendChild(desc);
-    b.onclick=function(){blk=n;chips();build()};
+    b.onclick=function(){openBlock(n)};
     w.appendChild(b);
   });
 }
