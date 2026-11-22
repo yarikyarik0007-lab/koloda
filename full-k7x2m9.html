@@ -417,7 +417,7 @@ function listenRoom(){
   },onErr));
 }
 function afterSync(){
-  updateLiveTally();
+  updateLiveTally();updatePartnerPresence();
   Object.keys(DN).forEach(function(b){var o=DN[b];if(o.me&&o.partner&&!REV[b]&&!FETCH[b])fetchPartner(+b,o.pname)});
   var t=el("ans").querySelector(".at");if(t&&DN[blk]&&DN[blk].me)t.readOnly=true;
   if(MODE==="room"){renderFin();updateLiveTally();if(blk===9)renderResults();if(el("blockRoom").style.display!=="none")chips()}
