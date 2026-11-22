@@ -108,6 +108,19 @@ service cloud.firestore {
         allow delete: if false;
       }
 
+      match /presence/{uid} {
+        // Each participant can publish only their own lightweight online status.
+        allow get, list: if isMember(roomId);
+        allow create, update: if isMember(roomId)
+          && request.auth.uid == uid
+          && request.resource.data.keys().hasAll(['uid', 'active', 'lastSeen'])
+          && request.resource.data.keys().hasOnly(['uid', 'active', 'lastSeen'])
+          && request.resource.data.uid == request.auth.uid
+          && request.resource.data.active is bool
+          && request.resource.data.lastSeen is number;
+        allow delete: if false;
+      }
+
       match /progress/{progressId} {
         // Only numeric progress is shared; answer text is never stored here.
         allow get, list: if isMember(roomId);
