@@ -380,7 +380,7 @@ function clearR(){
   Object.keys(MEM).forEach(function(k){if(k.charAt(0)==="R")delete MEM[k]});
   try{var rm=[];for(var k=0;k<localStorage.length;k++){var key=localStorage.key(k);if(key.indexOf("kp_R")===0)rm.push(key)}rm.forEach(function(x){localStorage.removeItem(x)})}catch(e){}
 }
-function stopListen(){unsubs.forEach(function(u){try{u()}catch(e){}});unsubs=[];Object.keys(progressTimers).forEach(function(k){clearTimeout(progressTimers[k])});progressTimers={};if(presenceTimer){clearInterval(presenceTimer);presenceTimer=null}}
+function stopListen(){unsubs.forEach(function(u){try{u()}catch(e){}});unsubs=[];Object.keys(progressTimers).forEach(function(k){clearTimeout(progressTimers[k])});progressTimers={};if(presenceTimer){clearInterval(presenceTimer);presenceTimer=null}if(typingTimer){clearTimeout(typingTimer);typingTimer=null}isTyping=false}
 function writePresence(active){
   if(!db||!ROOM||!UID)return Promise.resolve();
   return db.collection("rooms").doc(ROOM.id).collection("presence").doc(UID).set({uid:UID,active:!!active,lastSeen:Date.now(),typing:!!(active&&isTyping),typingBlock:blk,typingAt:Date.now()},{merge:true}).catch(function(e){roomMsg(errText(e))});
@@ -398,7 +398,7 @@ function updatePartnerPresence(){
   elp.querySelector("span").textContent=typing?"Партнёр сейчас отвечает…":(online?"Партнёр сейчас в комнате":"Партнёр не в сети · ответы сохраняются на вашем устройстве");
 }
 function listenRoom(){
-  stopListen();
+  stopListen();PRES={};
   var ref=db.collection("rooms").doc(ROOM.id), onErr=function(e){roomMsg(errText(e))};
   unsubs.push(ref.onSnapshot(function(d){if(d.exists){ROOM.members=d.data().members||[];afterSync()}},onErr));
   writePresence(true);presenceTimer=setInterval(function(){writePresence(true);updatePartnerPresence()},25000);
