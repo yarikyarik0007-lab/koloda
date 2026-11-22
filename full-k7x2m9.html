@@ -232,7 +232,11 @@ function fetchPartner(b,pname){
   db.collection("rooms").doc(ROOM.id).collection("answers").doc(b+"_"+pu).get().then(function(doc){
     FETCH[b]=false;if(!doc.exists)return;
     var a=doc.data().a||{};Object.keys(a).forEach(function(id){sset("R"+b+"_"+id+"_2",a[id]||"")});
-    if(pname)sset("Rnm2",pname);REV[b]=true;renderFin();if(blk===9)renderResults();
+    if(pname)sset("Rnm2",pname);REV[b]=true;
+    /* Обновляем открытый экран сразу после получения ответов, без перезагрузки страницы. */
+    renderAns();renderFin();
+    if(blk===9)renderResults();
+    if(blk===b)roomMsg("Ответы партнёра получены. Они доступны в разделе «Результаты».");
   }).catch(function(e){FETCH[b]=false;roomMsg(errText(e))});
 }
 function finishBlock(b){
