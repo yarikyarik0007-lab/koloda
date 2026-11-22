@@ -227,6 +227,24 @@ h1{font-family:"Manrope",sans-serif;font-size:2.35rem;letter-spacing:-.045em;col
 #roomCodeStatus{min-height:22px;color:var(--muted);font-size:.85rem;margin:10px 0 0}
 #roomCodeModal .modal-actions{display:grid;gap:10px}
 
+
+/* Тёплые состояния сохранения, завершения и открытия общей истории */
+.answer-save{display:flex;align-items:center;gap:7px;margin:9px 3px 0;color:#7B8C80;font-size:.72rem;line-height:1.4;min-height:20px}
+.answer-save .save-mark{display:inline-grid;place-items:center;width:17px;height:17px;border-radius:50%;background:#E6F1E8;color:#527D6E;font-weight:900;font-size:.68rem;flex:none}
+.answer-save.pending .save-mark{background:#F8E9D9;color:#A87843}
+.answer-save.error .save-mark{background:#F8E2E5;color:#B65D70}
+#fin.both-done{border-color:#E8C5D0;background:radial-gradient(circle at 90% 0%,#F8DCE4 0,transparent 42%),linear-gradient(135deg,#FFFBF8,#F7E9E9);box-shadow:0 10px 28px rgba(181,108,128,.15)}
+#fin.both-done:before{content:"✦  ♡  ✦";display:block;text-align:center;color:#C9798B;font-size:1.15rem;letter-spacing:.45rem;margin:0 0 5px;animation:heart-glow 1.8s ease-in-out infinite alternate}
+#fin.both-done p:first-of-type{font-family:"Lora",Georgia,serif;font-size:1.12rem;font-weight:600;text-align:center;color:#31534A;background:rgba(255,255,255,.72)}
+@keyframes heart-glow{from{opacity:.55;transform:translateY(1px)}to{opacity:1;transform:translateY(-2px)}}
+.answer-reveal{animation:answer-reveal .65s cubic-bezier(.2,.75,.25,1) both}
+@keyframes answer-reveal{0%{opacity:0;transform:translateY(12px) scale(.985);filter:blur(3px)}65%{filter:blur(0)}100%{opacity:1;transform:none}}
+#reslist .results-intro{position:relative;overflow:hidden}
+#reslist .ri{animation:answer-reveal .45s ease both}
+#reslist .ri:nth-of-type(3n+1){animation-delay:.05s}
+#reslist .ri:nth-of-type(3n+2){animation-delay:.1s}
+#reslist .ri:nth-of-type(3n){animation-delay:.15s}
+@media(prefers-reduced-motion:reduce){#fin.both-done:before,.answer-reveal,#reslist .ri{animation:none}}
 </style>
 </head>
 <body>
@@ -400,6 +418,7 @@ function fetchPartner(b,pname){
     FETCH[b]=false;if(!doc.exists)return;
     var a=doc.data().a||{};Object.keys(a).forEach(function(id){sset("R"+b+"_"+id+"_2",a[id]||"")});
     if(pname)sset("Rnm2",pname);REV[b]=true;
+    el("ans").classList.remove("answer-reveal");void el("ans").offsetWidth;el("ans").classList.add("answer-reveal");
     /* Обновляем открытый экран сразу после получения ответов, без перезагрузки страницы. */
     renderAns();renderFin();
     if(blk===9)renderResults();
@@ -636,6 +655,14 @@ document.addEventListener("keydown",function(e){
 });
 
 /* ---------- поля ответов ---------- */
+function updateAnswerSaveStatus(room){
+  var status=el("answerSaveStatus");if(!status)return;
+  var copy=status.querySelector(".save-copy"),mark=status.querySelector(".save-mark");
+  var ok=true;try{ok=localStorage.getItem("kp_"+K(blk,list[i]&&list[i].id||0,1))!==null}catch(e){ok=false}
+  status.classList.toggle("error",!ok);status.classList.remove("pending");
+  mark.textContent=ok?"✓":"!";
+  copy.textContent=ok?(room?"Черновик сохранён на этом устройстве · партнёр его не видит":"Ответ сохранён на этом устройстве"):"Не удалось подтвердить сохранение в памяти браузера";
+}
 function renderAns(){
   var a=el("ans"),ok=blk<8&&i<list.length&&!list[i].bridge&&!list[i].intro&&MODE;
   if(!ok){a.style.display="none";a.innerHTML="";return}
@@ -644,8 +671,9 @@ function renderAns(){
   (room?[1]:[1,2]).forEach(function(p){
     html+='<div>'+(room?'':'<input class="nm" data-p="'+p+'" placeholder="Имя '+p+'" aria-label="Имя '+p+'">')+'<textarea class="at" data-p="'+p+'" rows="4" placeholder="Ваш ответ" aria-label="Ответ"></textarea>'+(room?'':'<button class="shuffle hbtn" data-p="'+p+'"></button>')+'</div>';
   });
-  a.innerHTML=html+'</div>';
+  a.innerHTML=html+'</div><div class="answer-save" id="answerSaveStatus" aria-live="polite"><span class="save-mark">✓</span><span class="save-copy">Сохранено на этом устройстве</span></div>';
   var locked=room&&DN[blk]&&DN[blk].me;
+  updateAnswerSaveStatus(room);
   Array.prototype.forEach.call(a.querySelectorAll(".nm"),function(n){
     var p=n.getAttribute("data-p");n.value=nmv(+p);
     n.addEventListener("input",function(){sset(p==="2"?"nm2":"nm1",n.value);var hb=a.querySelector('.hbtn[data-p="'+p+'"]');if(hb)hb.textContent=(hideP[p]?"Показать: ":"Скрыть: ")+(n.value||("ответ "+p))});
@@ -653,7 +681,7 @@ function renderAns(){
   Array.prototype.forEach.call(a.querySelectorAll(".at"),function(t){
     var p=t.getAttribute("data-p"),key=K(blk,qid,p);
     t.value=sget(key);t.readOnly=room?!!locked:hideP[p];if(!room)t.classList.toggle("hid",hideP[p]);
-    t.addEventListener("input",function(){sset(key,t.value);updateLiveTally();if(room)scheduleProgress(blk)});
+    t.addEventListener("input",function(){sset(key,t.value);updateAnswerSaveStatus(room);updateLiveTally();if(room)scheduleProgress(blk)});
     t.addEventListener("change",function(){if(room)scheduleProgress(blk)});
   });
   Array.prototype.forEach.call(a.querySelectorAll(".hbtn"),function(h){
@@ -678,7 +706,8 @@ function renderFin(){
   function add(tag,text){var n=document.createElement(tag);n.textContent=text;f.appendChild(n);return n}
   if(d.me){f.classList.add("waiting-state");
     if(d.partner&&REV[blk]){
-      add("p","♥ Партнёр тоже закончил блок. Ответы открыты.");
+      f.classList.add("both-done");
+      add("p","Вы прошли этот этап вместе ♥ Теперь можно спокойно открыть ответы друг друга.");
       var b=add("button","Смотреть результаты");b.className="btn main";b.onclick=function(){blk=9;chips();build()};
     }else if(d.partner){add("p","Партнёр закончил. Загружаем ответы…")}
     else add("p","♥ Отличная работа! Ваши ответы сохранены и скрыты. Теперь ждём партнёра — как только он завершит блок, ответы откроются здесь автоматически.");
@@ -715,9 +744,10 @@ function renderResults(){
   var box=el("reslist");box.innerHTML="";var data=collect();
   var total=data.reduce(function(sum,b){return sum+b.items.length},0);
   var intro=document.createElement("div");intro.className="results-intro";
-  var strong=document.createElement("strong");strong.textContent=total?("Карточек с ответами: "+total):"Ваши общие открытия";intro.appendChild(strong);
+  var strong=document.createElement("strong");strong.textContent=total?("Ваша общая история · "+total+" карточек"):"Ваши общие открытия";intro.appendChild(strong);
   var note=document.createElement("span");note.textContent=MODE==="room"?"Здесь собраны ответы из блоков, которые вы оба завершили.":"Все ваши ответы собраны в одном месте — возвращайтесь к ним в любое время.";intro.appendChild(note);box.appendChild(intro);
   if(!data.length){var e=document.createElement("p");e.className="lead";e.textContent=MODE==="room"?"Результаты откроются, когда вы оба завершите блок.":"Пока нет ответов. Откройте любой блок и запишите ответы на карточках.";box.appendChild(e);return}
+  box.classList.remove("answer-reveal");void box.offsetWidth;box.classList.add("answer-reveal");
   data.forEach(function(b){
     var h=document.createElement("h3");h.textContent=TITLES[b.n].replace(/^\d+\.\s*/,"");box.appendChild(h);
     b.items.forEach(function(it){
