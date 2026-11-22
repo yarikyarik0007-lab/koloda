@@ -23,6 +23,19 @@ main{max-width:520px;margin:0 auto;padding:20px 18px 28px}
 h1{font-family:"Lora",Georgia,"Times New Roman",serif;font-weight:600;font-size:1.6rem;line-height:1.2;margin:8px 0 6px}
 .lead{color:var(--muted);font-size:.95rem;margin:0 0 18px}
 .block-room{margin-top:14px}
+.couple-overview{background:linear-gradient(125deg,#FFFDFC,#F8E8EB);border:1px solid #F0D9DE;border-radius:19px;padding:14px 15px;margin:0 0 17px;box-shadow:0 5px 14px rgba(115,75,72,.055)}
+.overview-top{display:flex;justify-content:space-between;align-items:center;gap:8px;color:#8D6470;font-size:.78rem;font-weight:700;margin-bottom:9px}
+.overview-top strong{color:#527D6E;font-size:.8rem}
+.overview-track{height:7px;border-radius:99px;background:#EEDDE0;overflow:hidden}
+.overview-track i{display:block;width:0;height:100%;border-radius:99px;background:linear-gradient(90deg,#E9859A,#557F70);transition:width .35s ease}
+#overviewNote{font-size:.72rem;line-height:1.4;color:#8A817D;margin:9px 0 0}
+.chip-status{display:flex;align-items:center;gap:5px;font-size:.65rem;line-height:1.25;font-weight:800;color:#8A817D;margin-top:2px}
+.chip-status.done{color:#527D6E}
+.chip-status.wait{color:#B56C80}
+.chip-status .status-dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex:none}
+.chip[aria-pressed="true"]:after{content:"Вы здесь";bottom:8px}
+.chip[aria-pressed="true"] .chip-status{padding-right:58px}
+@media(prefers-reduced-motion:reduce){.overview-track i{transition:none}}
 .block-room-intro{position:relative;overflow:hidden;text-align:center;padding:25px 19px 22px;border:1px solid #F0DEDA;border-radius:24px;background:radial-gradient(circle at 10% 5%,#F9E4E8 0,transparent 38%),linear-gradient(145deg,#FFFCF8,#F6ECE8);margin-bottom:19px}
 .block-room-mark{display:inline-grid;place-items:center;width:48px;height:48px;border-radius:50%;background:#FFFFFFC9;color:#C9798B;font-size:1.5rem;box-shadow:0 4px 14px #B9657C18}
 .block-room-intro .eyebrow{font-size:.63rem;letter-spacing:.16em;font-weight:800;color:#B9657C;margin:11px 0 5px}
@@ -243,6 +256,7 @@ h1{font-family:"Manrope",sans-serif;font-size:2.35rem;letter-spacing:-.045em;col
   <h1>Колода для пар</h1>
   <p class="lead" id="lead2"></p>
   <section id="blockRoom" class="block-room">
+    <div class="couple-overview" id="coupleOverview" aria-live="polite"><div class="overview-top"><span>♡ Ваш общий путь</span><strong id="overallCount">0 из 7 блоков</strong></div><div class="overview-track"><i id="overallFill"></i></div><p id="overviewNote">Каждый разговор — ещё один шаг навстречу.</p></div>
     <div class="block-room-intro"><span class="block-room-mark">♡</span><p class="eyebrow">ВАШЕ ПРОСТРАНСТВО ВДВОЁМ</p><h2>Выберите настроение вечера</h2><p>Каждый блок — отдельная тема для разговора. Начните с того, что откликается вам обоим.</p></div>
     <div class="block-heading"><strong>Все темы</strong><span>9 разделов · ваш общий путь</span></div>
     <div class="chips" id="chips" role="group" aria-label="Блоки"></div>
@@ -353,7 +367,7 @@ function listenRoom(){
 function afterSync(){
   Object.keys(DN).forEach(function(b){var o=DN[b];if(o.me&&o.partner&&!REV[b]&&!FETCH[b])fetchPartner(+b,o.pname)});
   var t=el("ans").querySelector(".at");if(t&&DN[blk]&&DN[blk].me)t.readOnly=true;
-  if(MODE==="room"){renderFin();if(blk===9)renderResults()}
+  if(MODE==="room"){renderFin();if(blk===9)renderResults();if(el("blockRoom").style.display!=="none")chips()}
 }
 function fetchPartner(b,pname){
   var pu=partnerUid();if(!pu)return;FETCH[b]=true;
@@ -364,6 +378,7 @@ function fetchPartner(b,pname){
     /* Обновляем открытый экран сразу после получения ответов, без перезагрузки страницы. */
     renderAns();renderFin();
     if(blk===9)renderResults();
+    if(el("blockRoom").style.display!=="none")chips();
     if(blk===b)roomMsg("Ответы партнёра получены. Они доступны в разделе «Результаты».");
   }).catch(function(e){FETCH[b]=false;roomMsg(errText(e))});
 }
@@ -430,7 +445,7 @@ el("pcont").onclick=async function(){
 };
 el("plocal").onclick=function(){saveName();startGame("local")};
 el("back").onclick=function(){showLobby()};
-el("allBlocks").onclick=function(){showBlockRoom();window.scrollTo({top:0,behavior:"smooth"})};
+el("allBlocks").onclick=function(){chips();showBlockRoom();window.scrollTo({top:0,behavior:"smooth"})};
 el("rcopycode").onclick=function(){try{navigator.clipboard.writeText(ROOM.id).then(function(){roomMsg("Код скопирован. Отправьте его партнёру.")},function(){roomMsg("Не удалось скопировать. Выделите код вручную.")})}catch(e){roomMsg("Не удалось скопировать. Выделите код вручную.")}};
 
 /* ---------- лобби и вход в игру ---------- */
@@ -457,6 +472,7 @@ function make(n){
 }
 function qcount(){return list.filter(function(d){return !d.bridge&&!d.intro}).length}
 function showBlockRoom(){
+  chips();
   el("blockRoom").style.display="";
   el("questionStage").style.display="none";
   el("pact").style.display="none";el("res").style.display="none";
@@ -514,8 +530,31 @@ function go(d){
   if(d>0&&list[i].bridge){if(CHANNEL_URL){window.open(CHANNEL_URL,"_blank")}else{build()}return}
   i+=d;draw(d);
 }
+function blockStats(n){
+  var total=B[n]?B[n].length:0,answered=0;
+  for(var id=0;id<total;id++){
+    var a=String(sget(K(n,id,1))||"").trim(),b=String(sget(K(n,id,2))||"").trim();
+    if(MODE==="room"?!!a:(!!a&&!!b))answered++;
+  }
+  var done=MODE==="room"?!!REV[n]:(total>0&&answered===total);
+  var mine=MODE==="room"&&DN[n]&&DN[n].me,partner=MODE==="room"&&DN[n]&&DN[n].partner;
+  return {total:total,answered:answered,done:done,mine:!!mine,partner:!!partner};
+}
+function updateOverview(){
+  var total=BLOCKS.length,done=0,answered=0,questions=0;
+  BLOCKS.forEach(function(n){var st=blockStats(n);if(st.done)done++;answered+=st.answered;questions+=st.total});
+  var pct=total?Math.round(done/total*100):0;
+  el("overallCount").textContent=done+" из "+total+" блоков";el("overallFill").style.width=pct+"%";
+  var note=MODE==="room"?"Завершённым блок считается только после ответов обоих участников.":"Прогресс засчитывается, когда на все вопросы блока ответили оба.";
+  if(done===total)note="Вы прошли весь путь вместе. Сохраните эти разговоры — они ваши ♡";
+  else if(done>=5)note="Вы уже так много открыли друг другу. Осталось совсем немного ♡";
+  else if(done>=3)note="У вас уже есть несколько общих открытий. Продолжайте в своём темпе ♡";
+  else if(done>=1)note="Первый общий этап позади. Впереди ещё много тёплых разговоров ♡";
+  else if(MODE==="room"&&answered>0)note="Вы уже ответили на "+answered+" из "+questions+" вопросов текущего пути. Ответы пока скрыты от партнёра.";
+  el("overviewNote").textContent=note;
+}
 function chips(){
-  var w=el("chips");w.innerHTML="";
+  var w=el("chips");w.innerHTML="";updateOverview();
   var meta={
     1:["♡","Первое впечатление и характер","Узнаём друг друга глубже"],
     2:["☕","Вкусы, привычки и радости","То, что делает нас нами"],
@@ -538,7 +577,16 @@ function chips(){
     top.appendChild(num);top.appendChild(ico);
     var title=document.createElement("span");title.className="chip-title";var cleanTitle=TITLES[n],dot=cleanTitle.indexOf(". ");if(dot>0&&dot<3)cleanTitle=cleanTitle.slice(dot+2);title.textContent=cleanTitle;
     var desc=document.createElement("span");desc.className="chip-desc";desc.textContent=m[2];
-    b.appendChild(top);b.appendChild(title);b.appendChild(desc);
+    var st=blockStats(n),status=document.createElement("span");status.className="chip-status"+(st.done?" done":((st.mine||st.partner||st.answered>0)?" wait":""));
+    var dot=document.createElement("i");dot.className="status-dot";status.appendChild(dot);
+    var label=document.createElement("span");
+    if(st.done)label.textContent="Пройдено вместе";
+    else if(MODE==="room"&&st.mine)label.textContent=st.partner?"Открываем ответы…":"Вы завершили · ждём партнёра";
+    else if(MODE==="room"&&st.partner)label.textContent="Партнёр завершил · ваш ход";
+    else if(st.answered>0)label.textContent=MODE==="room"?st.answered+" из "+st.total+" ответов":"Заполнено "+st.answered+" из "+st.total+" пар ответов";
+    else label.textContent="Ещё впереди";
+    status.appendChild(label);
+    b.appendChild(top);b.appendChild(title);b.appendChild(desc);b.appendChild(status);
     b.onclick=function(){openBlock(n)};
     w.appendChild(b);
   });
