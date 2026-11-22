@@ -245,6 +245,11 @@ h1{font-family:"Manrope",sans-serif;font-size:2.35rem;letter-spacing:-.045em;col
 #reslist .ri:nth-of-type(3n+2){animation-delay:.1s}
 #reslist .ri:nth-of-type(3n){animation-delay:.15s}
 @media(prefers-reduced-motion:reduce){#fin.both-done:before,.answer-reveal,#reslist .ri{animation:none}}
+
+.partner-presence{display:flex;align-items:center;gap:7px;font-size:.7rem;color:#8A817D;margin:7px 0 0}
+.partner-presence i{width:7px;height:7px;border-radius:50%;background:#B9B4AE;flex:none}
+.partner-presence.online{color:#527D6E}.partner-presence.online i{background:#69A982;box-shadow:0 0 0 3px rgba(105,169,130,.13)}
+.partner-presence.offline i{background:#C5B9B3}
 </style>
 </head>
 <body>
@@ -286,7 +291,7 @@ h1{font-family:"Manrope",sans-serif;font-size:2.35rem;letter-spacing:-.045em;col
   </section>
   <div id="questionStage" style="display:none">
   <div class="stage-tools"><button class="link" id="allBlocks">← Все блоки</button><span id="stageName"></span></div>
-  <div class="live-tally" id="liveTally" aria-live="polite"><div><span id="myTally">Вы: 0 из 15</span><span id="partnerTally">Партнёр: 0 из 15</span></div><p id="tallyNote">Счётчик обновляется по мере заполнения ответов. Сами ответы остаются скрыты.</p></div>
+  <div class="live-tally" id="liveTally" aria-live="polite"><div><span id="myTally">Вы: 0 из 15</span><span id="partnerTally">Партнёр: 0 из 15</span></div><p id="tallyNote">Счётчик обновляется по мере заполнения ответов. Сами ответы остаются скрыты.</p><p class="partner-presence" id="partnerPresence"><i></i><span>Подключаем статус партнёра…</span></p></div>
   <div class="journey-progress" id="journeyProgress"><div class="journey-meta"><span id="journeyBlock">Блок 1 из 7</span><span id="journeyPercent">0%</span></div><div class="journey-track"><i id="journeyFill"></i></div></div>
   <div class="card" id="card" tabindex="0" aria-live="polite"></div>
   <div id="ans"></div>
@@ -345,7 +350,7 @@ var B=[null,["Что в моём характере тебя удивило, к�
 var INTRO="Этот блок для взрослых пар. Отвечайте честно и без осуждения.", BRIDGE="Вы уже узнали друг друга лучше. Дальше пойдёт самое интересное: быт, мечты, близость и то, что вы хотите изменить вместе.";
 var FB_CFG={apiKey:"AIzaSyCnLhxurSJ8s28GWYcjSjNe_pkgkiwTBrw",authDomain:"koloda-app.firebaseapp.com",projectId:"koloda-app",storageBucket:"koloda-app.firebasestorage.app",messagingSenderId:"886064865472",appId:"1:886064865472:web:b1f53db07c5e22ad744d25"};
 var blk=1, list=[], i=0, MODE=null, MEM={}, hideP={1:false,2:false};
-var db=null, UID=null, ROOM=null, DN={}, REV={}, FETCH={}, PRG={}, unsubs=[], finArmed=false, progressTimers={};
+var db=null, UID=null, ROOM=null, DN={}, REV={}, FETCH={}, PRG={}, PRES={}, unsubs=[], finArmed=false, progressTimers={}, presenceTimer=null;
 var el=function(id){return document.getElementById(id)};
 function sget(k){try{var v=localStorage.getItem("kp_"+k);if(v!==null)return v}catch(e){}return MEM[k]||""}
 function sset(k,v){MEM[k]=v;try{localStorage.setItem("kp_"+k,v)}catch(e){}}
@@ -375,11 +380,26 @@ function clearR(){
   Object.keys(MEM).forEach(function(k){if(k.charAt(0)==="R")delete MEM[k]});
   try{var rm=[];for(var k=0;k<localStorage.length;k++){var key=localStorage.key(k);if(key.indexOf("kp_R")===0)rm.push(key)}rm.forEach(function(x){localStorage.removeItem(x)})}catch(e){}
 }
-function stopListen(){unsubs.forEach(function(u){try{u()}catch(e){}});unsubs=[];Object.keys(progressTimers).forEach(function(k){clearTimeout(progressTimers[k])});progressTimers={}}
+function stopListen(){unsubs.forEach(function(u){try{u()}catch(e){}});unsubs=[];Object.keys(progressTimers).forEach(function(k){clearTimeout(progressTimers[k])});progressTimers={};if(presenceTimer){clearInterval(presenceTimer);presenceTimer=null}}
+function writePresence(active){
+  if(!db||!ROOM||!UID)return Promise.resolve();
+  return db.collection("rooms").doc(ROOM.id).collection("presence").doc(UID).set({uid:UID,active:!!active,lastSeen:Date.now()},{merge:true}).catch(function(e){roomMsg(errText(e))});
+}
+function updatePartnerPresence(){
+  var elp=el("partnerPresence");if(!elp)return;
+  if(MODE!=="room"||!ROOM){elp.className="partner-presence";elp.querySelector("span").textContent="";return}
+  var pu=partnerUid(),p=pu&&PRES[pu],online=!!(p&&p.active&&Date.now()-(p.lastSeen||0)<65000);
+  elp.className="partner-presence "+(online?"online":"offline");
+  elp.querySelector("span").textContent=online?"Партнёр сейчас в комнате":"Партнёр не в сети · ответы сохраняются на вашем устройстве";
+}
 function listenRoom(){
   stopListen();
   var ref=db.collection("rooms").doc(ROOM.id), onErr=function(e){roomMsg(errText(e))};
   unsubs.push(ref.onSnapshot(function(d){if(d.exists){ROOM.members=d.data().members||[];afterSync()}},onErr));
+  writePresence(true);presenceTimer=setInterval(function(){writePresence(true)},25000);
+  unsubs.push(ref.collection("presence").onSnapshot(function(snap){
+    PRES={};snap.forEach(function(doc){var d=doc.data();if(d&&d.uid)PRES[d.uid]=d});updatePartnerPresence();
+  },onErr));
   unsubs.push(ref.collection("progress").onSnapshot(function(snap){
     PRG={};snap.forEach(function(doc){var d=doc.data();if(!d||d.block<1||d.block>7)return;var o=PRG[d.block]||(PRG[d.block]={me:0,partner:0});if(d.uid===UID)o.me=d.count||0;else o.partner=d.count||0});
     updateLiveTally();if(el("blockRoom").style.display!=="none")chips();
@@ -411,6 +431,7 @@ function updateLiveTally(){
   el("myTally").textContent="Вы: "+me+" из "+total;
   el("partnerTally").textContent="Партнёр: "+partner+" из "+total;
   el("tallyNote").textContent=(DN[blk]&&DN[blk].me)?"Вы завершили блок. Ждём, пока партнёр закончит.":"Количество ответов видно обоим, содержание ответов остаётся скрытым до завершения блока.";
+  updatePartnerPresence();
 }
 function fetchPartner(b,pname){
   var pu=partnerUid();if(!pu)return;FETCH[b]=true;
@@ -789,6 +810,7 @@ el("pclear").onclick=function(){var b=el("pclear");
   if(!armed){armed=true;b.textContent="Точно очистить?";setTimeout(function(){armed=false;b.textContent="Очистить"},4000);return}
   PK.forEach(function(k){el(k).value=""});pactSave();armed=false;b.textContent="Очистить";el("pmsg").textContent="Всё очищено."};
 pactLoad();
+window.addEventListener("pagehide",function(){if(MODE==="room")writePresence(false)});
 showLobby();
 </script>
 </body>
