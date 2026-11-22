@@ -250,6 +250,20 @@ h1{font-family:"Manrope",sans-serif;font-size:2.35rem;letter-spacing:-.045em;col
 .partner-presence i{width:7px;height:7px;border-radius:50%;background:#B9B4AE;flex:none}
 .partner-presence.online{color:#527D6E}.partner-presence.online i{background:#69A982;box-shadow:0 0 0 3px rgba(105,169,130,.13)}
 .partner-presence.offline i{background:#C5B9B3}
+/* ---------- демоверсия и приглашение подписаться ---------- */
+.paywall-modal{position:fixed;inset:0;z-index:10001;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(39,49,44,.48);backdrop-filter:blur(5px)}
+.paywall-modal.show{display:flex}
+.paywall-card{width:min(100%,420px);max-height:90vh;overflow:auto;border:1px solid #F0D9DE;border-radius:26px;padding:25px 21px 21px;background:radial-gradient(circle at 100% 0,#F9E4E8 0,transparent 38%),linear-gradient(145deg,#FFFCF8,#F7ECE8);box-shadow:0 18px 55px rgba(40,54,46,.22);text-align:center;animation:answer-reveal .35s ease both}
+.paywall-heart{display:grid;place-items:center;width:54px;height:54px;margin:0 auto 12px;border-radius:50%;background:#fff;color:#C9798B;font-size:26px}
+.paywall-card h2{font-family:"Lora",Georgia,serif;font-size:1.55rem;line-height:1.2;color:#31534A;margin:0 0 10px}
+.paywall-card p{font-size:.86rem;line-height:1.55;color:#7C7771;margin:0 0 14px}
+.paywall-card .paywall-note{font-size:.7rem;color:#9A8583;margin:13px 4px 0}
+.paywall-actions{display:grid;gap:9px;margin-top:16px}
+.paywall-actions .btn{width:100%;text-decoration:none;display:flex;align-items:center;justify-content:center}
+.chip.locked{border-style:dashed;background:linear-gradient(145deg,#FFFDFC,#F8F0EE)}
+.chip.locked .chip-number,.chip.locked .chip-title{color:#A77D83}
+.chip.locked .chip-status{color:#B96579}
+@media(prefers-reduced-motion:reduce){.paywall-card{animation:none}}
 </style>
 </head>
 <body>
@@ -340,12 +354,30 @@ h1{font-family:"Manrope",sans-serif;font-size:2.35rem;letter-spacing:-.045em;col
     <p id="roomCodeStatus" aria-live="polite"></p>
   </div>
 </div>
+<div class="paywall-modal" id="paywallModal" role="dialog" aria-modal="true" aria-labelledby="paywallTitle">
+  <div class="paywall-card">
+    <div class="paywall-heart">♡</div>
+    <p class="eyebrow">ВАШ ПУТЬ МОЖЕТ ПРОДОЛЖИТЬСЯ</p>
+    <h2 id="paywallTitle">Понравилась демоверсия?</h2>
+    <p>Вы прошли первые два блока. Впереди ещё пять тем: совместная жизнь, мечты, важные разговоры и близость.</p>
+    <p><strong>Подпишитесь на наш Instagram</strong>, чтобы поддержать «Наедине» и не пропускать новые вопросы и идеи для двоих.</p>
+    <div class="paywall-actions">
+      <a class="btn main" id="instagramFollow" href="https://www.instagram.com/galya_privet/" target="_blank" rel="noopener noreferrer">Перейти в Instagram</a>
+      <button class="btn" id="paywallUnlock">Я подписался — продолжить</button>
+      <a class="btn" id="telegramChannel" href="https://t.me/zhenazekaa" target="_blank" rel="noopener noreferrer">Наш Telegram-канал</a>
+      <button class="link" id="paywallClose" type="button">Пока остаться в демоверсии</button>
+    </div>
+    <p class="paywall-note">Сайт не может автоматически проверить подписку на Instagram. Кнопка продолжения работает на доверии и сохраняет выбор на этом устройстве.</p>
+  </div>
+</div>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script>
-var FULL=true, BLOCKS=FULL?[1,2,3,4,5,6,7]:[1,2], CHANNEL_URL="";
-var TITLES=FULL?{1:"1. Узнаём друг друга ближе",2:"2. Вкусы и любимое",3:"3. Быт и совместная жизнь",4:"4. Развлечения и путешествия",5:"5. Решаем",6:"6. Близость",7:"7. Интим (18+)",8:"8. Наши договорённости",9:"9. Все ответы"}:{1:"1. Узнаём друг друга ближе",2:"2. Вкусы и любимое",9:"Все ответы"};
+var FULL=(function(){try{return localStorage.getItem("kp_full_access")==="1"}catch(e){return false}})();
+var BLOCKS=FULL?[1,2,3,4,5,6,7]:[1,2], CHANNEL_URL="https://t.me/zhenazekaa";
+var INSTAGRAM_URL="https://www.instagram.com/galya_privet/";
+var TITLES={1:"1. Узнаём друг друга ближе",2:"2. Вкусы и любимое",3:"3. Быт и совместная жизнь",4:"4. Развлечения и путешествия",5:"5. Решаем",6:"6. Близость",7:"7. Интим (18+)",8:"8. Наши договорённости",9:"9. Все ответы"};
 var B=[null,["Что в моём характере тебя удивило, когда мы только познакомились?","Какую мою маленькую привычку ты находишь милой?","Что помогает мне восстановиться после тяжёлого дня?","Что мне нужно, когда я расстроен(а)? Как ты это понимаешь?","В какие моменты я больше всего становлюсь самим(ой) собой?","Что меня тревожит, но я редко об этом говорю?","Какой страх я ношу в себе с детства?","Что в наших отношениях для меня самое ценное?","Какое наше воспоминание я вспоминаю чаще всего?","Какая мелочь делает мой день лучше?","Какой наш маленький ритуал (сообщение, звонок, привычка) для меня самый важный?","Каким ты запомнил(а) наш первый разговор? Что тебя тогда зацепило?","Какой момент из моего детства сильнее всего меня сформировал?","Что ты хотел(а) бы, чтобы я лучше понимал(а) в тебе?","Что нового ты узнал(а) обо мне за время наших отношений, чего не ожидал(а)?"],["Какое блюдо я могу есть каждую неделю, и оно мне не надоест?","Какой фильм или сериал я пересматривал(а) чаще всего?","Какая песня сразу поднимает мне настроение?","Что я закажу в любимом кафе, если можно выбрать всё что угодно?","Что из того, что я люблю, тебе до сих пор непонятно? Спроси меня об этом.","Какой подарок обрадовал бы меня больше всего? А какой обрадовал бы тебя? Сравним.","Куда я бы поехал(а) в идеальный отпуск? А ты? Куда поедем вместе?","Какую мою странную привычку ты замечаешь, но ни разу не обсуждал(а)?","Что из моего детства ты хотел(а) бы увидеть своими глазами: фото, любимое место, игрушку?","Каким должен быть наш идеальный выходной? Где мы совпали, а где нет?","Что бы тебе хотелось приготовить или попробовать вместе со мной в первый раз?","Расскажи то, что я о тебе точно не знаю, но, по-твоему, должен(на) узнать.","Какое занятие нам стоит попробовать вместе, но мы всё откладывали?","Какое моё качество ты полюбил(а) не сразу, а со временем?","Назовите друг про друга любимый цвет, еду и фильм, а потом сверьтесь. Кто был точнее?"],["Каким должно быть наше идеальное утро вместе?","Что в доме для тебя должно быть всегда на своих местах?","Какие домашние дела ты любишь, а какие терпеть не можешь?","Как нам лучше делить обязанности по дому, чтобы никто не чувствовал себя перегруженным?","Какую мою бытовую привычку ты находишь забавной?","Какая бытовая мелочь тебя иногда раздражает, но ты редко об этом говоришь?","Как выглядит твой идеальный вечер дома?","Что нам приятнее готовить вместе, а что лучше каждому по отдельности?","Как нам лучше вести общие расходы: общий бюджет, раздельный или смешанный? Почему?","Сколько личного пространства тебе нужно, когда мы рядом?","Какой уголок в нашем доме ты бы обустроил(а) в первую очередь?","Какие правила в нашем доме должны быть обязательно, а какие можно нарушать?","Как ты хочешь отмечать праздники и дни рождения: шумно или тихо?","Что для тебя значит «чувствовать себя дома» рядом со мной?","Что я мог(ла) бы делать по дому чуть иначе, чтобы тебе было приятнее?"],["Какое место в мире ты мечтаешь увидеть вместе со мной?","Какое путешествие в нашей жизни ты вспоминаешь с самой тёплой улыбкой?","Как выглядит идеальный день в незнакомом городе: с планом или без?","Что для тебя важнее в поездке: приключения, отдых или вкусная еда?","Какое необычное занятие ты хотел(а) бы попробовать со мной хотя бы раз в жизни?","Какой фильм или сериал нам стоит посмотреть вместе в ближайшее время?","Что ты любишь делать на выходных, чего мы ещё ни разу не делали вместе?","Что мы точно возьмём с собой в путешествие, а что оставим дома?","Как ты хочешь провести наш следующий отпуск?","Какое наше свидание ты запомнил(а) лучше всего? Что в нём было особенного?","Какое свидание ты хотел(а) бы организовать для меня и никогда не решался(ась)?","Что нам нужно сделать вместе до конца этого года?","Какое место рядом с нами мы ещё не открыли, но обязательно должны посетить?","Какую традицию для наших путешествий ты хотел(а) бы создать?","Если бы у нас был один день, неделя и месяц на что угодно, как бы мы провели каждый срок?"],["Что в наших отношениях ты хотел(а) бы оставить навсегда неизменным?","Как ты понимаешь, что нам нужно поговорить о чём-то серьёзном?","Как тебе легче говорить о проблемах: сразу, после паузы или письменно?","Что я могу сказать или сделать, чтобы тебе было легче начать трудный разговор?","Что в наших спорах тебя расстраивает больше всего?","Как ты хочешь, чтобы мы мирились после ссоры?","Что мне нужно знать о тебе, чтобы лучше понимать тебя в споре?","О какой теме ты хотел(а) бы поговорить, но пока не решался(ась) начать?","Что в нашем общении ты хотел(а) бы изменить, чтобы нам обоим было легче?","Как нам лучше решать разногласия: сразу, на следующий день или в специально выбранное время?","Что для тебя значит «почувствовать, что тебя услышали»?","Что ты хотел(а) бы, чтобы мы делали чаще, а что реже?","Как нам лучше поддерживать друг друга в трудные периоды?","О чём нам стоит договориться уже сейчас, чтобы потом не спорить?","Какое главное правило наших отношений мы можем записать и всегда помнить?"],["Какие мои объятия тебе нравятся больше всего: долгие, крепкие или спонтанные?","Какое моё прикосновение сразу тебя успокаивает?","Какие слова любви ты хочешь слышать от меня чаще?","Что я могу сделать, чтобы ты почувствовал(а) себя самым(ой) любимым(ой)?","Как ты чувствуешь, что мы близки, даже когда молчим?","Когда ты в последний раз сильно соскучился(ась) по мне? Что ты тогда почувствовал(а)?","Какой поцелуй из нашей истории ты запомнил(а) лучше всего?","Что для тебя значит «быть рядом»: физически, в мыслях или в разговоре?","Какой наш момент нежности ты бы повторил(а) прямо сейчас?","Что помогает тебе чувствовать себя в безопасности рядом со мной?","Как ты любишь показывать любовь: словами, делами, подарками, прикосновениями или временем вместе?","Какой близости, кроме физической, тебе сейчас не хватает?","Какая мелочь, которую я делаю, заставляет твоё сердце биться быстрее?","Что мы можем делать каждый день, чтобы быть ближе друг к другу?","Что ты хочешь сказать мне прямо сейчас, но не решался(ась)?"],["Что тебя больше всего возбуждает: слова, прикосновения, взгляды или что-то ещё?","Как ты любишь начинать близость: спонтанно или с настроем заранее?","Какие мои прикосновения тебе нравятся больше всего?","Какие позы нравятся тебе больше всего, и что именно в них приятно?","Какая поза или действие не приносят тебе удовольствия? Скажи спокойно, без вины, мне важно это знать.","Что я делаю в близости такого, что тебе особенно нравится?","Что ты хотел(а) бы, чтобы я делал(а) чаще или по-другому?","Какие слова или шёпот во время близости тебя заводят?","Когда и где тебе нравится больше всего: утром, вечером, ночью, в необычных местах?","Что тебе нужно, чтобы расслабиться и почувствовать себя желанным(ой)?","Какую фантазию ты хотел(а) бы обсудить со мной, даже если пробовать пока не готов(а)?","Что из нового ты хотел(а) бы попробовать вместе, а что точно нет?","Какая твоя «красная линия» в близости, о которой мне нужно знать?","Как нам лучше говорить друг другу «стоп» или «давай помедленнее» прямо в моменте?","Что ты чувствуешь после близости, и что тебе тогда нужно от меня?"]];
 var INTRO="Этот блок для взрослых пар. Отвечайте честно и без осуждения.", BRIDGE="Вы уже узнали друг друга лучше. Дальше пойдёт самое интересное: быт, мечты, близость и то, что вы хотите изменить вместе.";
 var FB_CFG={apiKey:"AIzaSyCnLhxurSJ8s28GWYcjSjNe_pkgkiwTBrw",authDomain:"koloda-app.firebaseapp.com",projectId:"koloda-app",storageBucket:"koloda-app.firebasestorage.app",messagingSenderId:"886064865472",appId:"1:886064865472:web:b1f53db07c5e22ad744d25"};
@@ -358,6 +390,17 @@ function K(b,id,p){return (MODE==="room"?"R":"a")+b+"_"+id+"_"+p}
 function nmv(p){return sget(p===2?(MODE==="room"?"Rnm2":"nm2"):"nm1")}
 function nmLabel(p){return nmv(p)||(MODE==="room"?(p===1?"Вы":"Партнёр"):"Ответ "+p)}
 function lastBlock(){return FULL?8:2}
+function showPaywall(){el("paywallModal").classList.add("show")}
+function closePaywall(){el("paywallModal").classList.remove("show")}
+el("paywallClose").onclick=closePaywall;
+el("paywallModal").addEventListener("click",function(e){if(e.target===el("paywallModal"))closePaywall()});
+el("instagramFollow").href=INSTAGRAM_URL;
+el("telegramChannel").href=CHANNEL_URL;
+el("paywallUnlock").onclick=function(){
+  try{localStorage.setItem("kp_full_access","1")}catch(e){}
+  FULL=true;
+  window.location.reload();
+};
 
 /* ---------- Firebase ---------- */
 var authP=Promise.reject(new Error("nofirebase")); authP.catch(function(){});
@@ -549,6 +592,7 @@ function showBlockRoom(){
   el("pact").style.display="none";el("res").style.display="none";
 }
 function openBlock(n){
+  if(!FULL&&n>=3&&n<=7){showPaywall();return}
   blk=n;chips();build();
   window.scrollTo({top:0,behavior:"smooth"});
 }
@@ -600,7 +644,7 @@ function draw(dir){
 function go(d){
   if(d<0&&i===0){if(blk>1){blk-=1;chips();list=make(blk);i=list.length-1;draw(-1)}return}
   if(d>0&&i>=list.length){if(blk<lastBlock()){blk+=1;chips();build()}else{build()}return}
-  if(d>0&&list[i].bridge){if(CHANNEL_URL){window.open(CHANNEL_URL,"_blank")}else{build()}return}
+  if(d>0&&list[i].bridge){showPaywall();return}
   i+=d;draw(d);
 }
 function blockStats(n){
@@ -639,14 +683,14 @@ function chips(){
     8:["♧","Наши договорённости","Собираем важное в одно место"],
     9:["♥","История наших ответов","Всё, чем вы поделились"]
   };
-  BLOCKS.concat(FULL?[8,9]:[9]).forEach(function(n){
+  BLOCKS.concat(FULL?[8,9]:[3,4,5,6,7,9]).forEach(function(n){
     var m=meta[n]||["♡","Новая тема","Откройте следующий разговор"];
-    var b=document.createElement("button");b.className="chip";
+    var b=document.createElement("button");b.className="chip"+((!FULL&&n>=3&&n<=7)?" locked":"");
     b.setAttribute("aria-pressed",n===blk?"true":"false");
     b.setAttribute("aria-label",TITLES[n]+". "+m[2]);
     var top=document.createElement("span");top.className="chip-top";
     var num=document.createElement("span");num.className="chip-number";num.textContent=n<=7?"ЭТАП "+n:"ВАШЕ";
-    var ico=document.createElement("span");ico.className="chip-icon";ico.textContent=m[0];
+    var ico=document.createElement("span");ico.className="chip-icon";ico.textContent=(!FULL&&n>=3&&n<=7)?"🔒":m[0];
     top.appendChild(num);top.appendChild(ico);
     var title=document.createElement("span");title.className="chip-title";var cleanTitle=TITLES[n],dot=cleanTitle.indexOf(". ");if(dot>0&&dot<3)cleanTitle=cleanTitle.slice(dot+2);title.textContent=cleanTitle;
     var desc=document.createElement("span");desc.className="chip-desc";desc.textContent=m[2];
@@ -654,7 +698,8 @@ function chips(){
     var dot=document.createElement("i");dot.className="status-dot";status.appendChild(dot);
     var label=document.createElement("span");
     if(MODE==="room"&&n<=7){var pg=PRG[n]||{};var my=pg.me||0,partner=pg.partner||0;desc.textContent="Вы: "+my+"/"+st.total+" · Партнёр: "+partner+"/"+st.total}
-    if(st.done)label.textContent="Пройдено вместе";
+    if(!FULL&&n>=3&&n<=7)label.textContent="Подписка в Instagram — доступ к полной версии";
+    else if(st.done)label.textContent="Пройдено вместе";
     else if(MODE==="room"&&st.mine)label.textContent=st.partner?"Открываем ответы…":"Вы завершили · ждём партнёра";
     else if(MODE==="room"&&st.partner)label.textContent="Партнёр завершил · ваш ход";
     else if(st.answered>0)label.textContent=MODE==="room"?st.answered+" из "+st.total+" ответов":"Заполнено "+st.answered+" из "+st.total+" пар ответов";
