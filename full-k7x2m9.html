@@ -652,7 +652,7 @@ function renderAns(){
   Array.prototype.forEach.call(a.querySelectorAll(".at"),function(t){
     var p=t.getAttribute("data-p"),key=K(blk,qid,p);
     t.value=sget(key);t.readOnly=room?!!locked:hideP[p];if(!room)t.classList.toggle("hid",hideP[p]);
-    t.addEventListener("input",function(){sset(key,t.value);updateLiveTally()});
+    t.addEventListener("input",function(){sset(key,t.value);updateLiveTally();if(room)scheduleProgress(blk)});
     t.addEventListener("change",function(){if(room)scheduleProgress(blk)});
   });
   Array.prototype.forEach.call(a.querySelectorAll(".hbtn"),function(h){
