@@ -89,6 +89,8 @@ body{background:radial-gradient(ellipse at 12% 8%,#F9DDE2 0,transparent 29%),rad
 main{max-width:560px;padding:24px 18px 42px}
 h1{font-family:"Manrope",sans-serif;font-size:2.35rem;letter-spacing:-.045em;color:#29443E;text-align:center;margin:0}
 .lead{color:var(--muted)}
+#lobby{position:relative;isolation:isolate;overflow:hidden}
+#lobby:before{content:"♡       ✨          🌷\A\A    💗        ♡       ✨\A\A  🌸       💞          ♡\A\A       ✨       🌷       💗\A\A  ♡          🌸       ✨";white-space:pre-wrap;position:absolute;z-index:-1;inset:-12px -8px;overflow:hidden;pointer-events:none;text-align:center;font-size:clamp(1.05rem,4.8vw,1.55rem);line-height:5.2;letter-spacing:.65rem;color:#D98FA1;opacity:.24;transform:rotate(-5deg)}
 #lobby .brand{text-align:center;position:relative;padding:16px 12px 22px}
 .brand-heart{font-family:Georgia,serif;color:#E9859A;font-size:3rem;line-height:1;margin-bottom:-4px}
 #lobby .brand h1{font-size:clamp(2.5rem,12vw,3.5rem);font-weight:800}
@@ -176,11 +178,6 @@ h1{font-family:"Manrope",sans-serif;font-size:2.35rem;letter-spacing:-.045em;col
     <p class="lead">Время стать ближе друг к другу</p>
     <span class="brand-spark">♥</span>
   </header>
-  <section class="daily-card">
-    <span class="daily-label">♥ Вопрос дня</span>
-    <p>Что помогает тебе чувствовать себя любимым?</p>
-    <small>Ответьте честно и не торопясь ♡</small>
-  </section>
   <label class="lbl name-label" for="myname">Как к вам обращаться?</label>
   <input id="myname" autocomplete="off" placeholder="Ваше имя">
   <div class="menu-actions">
