@@ -59,7 +59,7 @@ body{background:radial-gradient(ellipse at 50% -15%,#352747 0,transparent 58%),v
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="brand"><span class="brandmark">♡</span> КОЛОДА</div><button class="quiet hidden" id="exitBtn">Выйти</button></header>
+<header class="top"><div class="brand"><span class="brandmark">♡</span> КОЛОДА</div><button class="quiet hidden" id="exitBtn">← Вернуться в меню</button></header>
 <section class="screen active" id="roomScreen">
  <p class="eyebrow">ваша пара</p><h2>Начнём вдвоём?</h2><p class="lead">Создайте общую комнату или присоединитесь к партнёру. Пока вы отвечаете, личные ответы друг друга не видны.</p>
  <div class="panel">
@@ -71,7 +71,7 @@ body{background:radial-gradient(ellipse at 50% -15%,#352747 0,transparent 58%),v
   <button class="btn full" id="joinRoom">Войти в комнату</button>
   <p class="status" id="roomStatus" aria-live="polite"></p>
  </div>
- <button class="action" id="oneMode" style="margin-top:14px"><span class="ico">👀</span><span><strong>Играть с одного телефона</strong><small>Ответы будут скрываться при передаче телефона.</small></span></button><button class="quiet" id="backHome">← В меню</button>
+ <button class="action" id="oneMode" style="margin-top:14px"><span class="ico">👀</span><span><strong>Играть с одного телефона</strong><small>Ответы будут скрываться при передаче телефона.</small></span></button>
  <p class="note">Код комнаты — как ключ от вашей пары. Передавайте его только партнёру.</p>
 </section>
 <section class="screen" id="quiz">
@@ -245,7 +245,7 @@ function refreshDone(){if(mode==="one")return;var other=person===1?2:1;if(reveal
 function makeResults(){if(mode==="two"&&!revealed){return ""}var list=el("resultsList");list.innerHTML="";var lines=[];QUESTIONS.forEach(function(q,n){var first="",second="";if(mode==="one"){first=answers[1][n]||"";second=answers[2][n]||""}else{var mine=answers[person]||{},other=partnerAnswers[q.block*100+q.id]||"";first=person===1?(mine[n]||""):other;second=person===1?other:(mine[n]||"")}if(!first&&!second)return;var d=document.createElement("div");d.className="resultitem";var p=document.createElement("p");p.className="resultq";p.textContent=q.q;d.appendChild(p);if(first){var l=document.createElement("p");l.className="resultperson";l.textContent="Первый партнёр";var t=document.createElement("p");t.className="resulttext";t.textContent=first;d.appendChild(l);d.appendChild(t)}if(second){var l2=document.createElement("p");l2.className="resultperson";l2.textContent="Второй партнёр";var t2=document.createElement("p");t2.className="resulttext";t2.textContent=second;d.appendChild(l2);d.appendChild(t2)}list.appendChild(d);lines.push(q.q+"\\nПервый: "+(first||"—")+"\\nВторой: "+(second||"—"))});if(!lines.length)list.textContent="Пока нет сохранённых ответов.";return lines.join("\\n\\n")}
 el("oneMode").onclick=function(){mode="one";if(!loadLocal()){person=1;index=0;answers={1:{},2:{}};done={1:false,2:false}}show("handoff");el("handoffTitle").textContent=person===2?"С возвращением!":"Вы будете отвечать по очереди";el("handoffText").textContent=person===2?"Продолжим со второго участника.":"Сначала ответит один из вас. Затем мы попросим передать телефон партнёру и скроем предыдущие ответы.";el("startSecond").textContent=person===2?"Продолжить":"Начать вдвоём"};
 
-el("backHome").onclick=function(){show("roomScreen")};
+
 el("createRoom").onclick=async function(){var b=el("createRoom");b.disabled=true;status("Создаём вашу комнату…");try{await authP;if(!UID)throw new Error("auth-failed");var c=codegen();await db.collection("rooms").doc(c).set({members:[UID],created:Date.now(),status:"active",done:{}});ROOM={id:c};person=1;index=0;answers={1:{},2:{}};partnerAnswers={};done={1:false,2:false};revealed=false;el("roomCode").textContent=c;el("roomCode").classList.remove("hidden");el("copyCode").classList.remove("hidden");status("Комната готова. Отправьте код партнёру, затем начинайте.");el("beginRoom").classList.remove("hidden");startListen();saveLocal()}catch(e){status(err(e))}finally{b.disabled=false}};
 el("joinRoom").onclick=async function(){var c=el("joinCode").value.trim().toUpperCase().replace(/\s/g,"");if(!c){status("Введите код комнаты.");return}status("Подключаемся…");try{await authP;var ref=db.collection("rooms").doc(c),snap=await ref.get();if(!snap.exists){status("Комната не найдена. Проверьте код.");return}var m=snap.data().members||[];if(m.indexOf(UID)<0){if(m.length>=2){status("В комнате уже два участника.");return}await ref.update({members:[m[0],UID]})}ROOM={id:c};person=2;index=0;answers={1:{},2:{}};partnerAnswers={};done={1:false,2:false};revealed=false;startListen();saveLocal();status("Вы в комнате! Можно начинать.");setTimeout(startQuiz,500)}catch(e){status(err(e))}};
 el("beginRoom").onclick=function(){startQuiz()};
