@@ -427,6 +427,7 @@ function make(n){
 function qcount(){return list.filter(function(d){return !d.bridge&&!d.intro}).length}
 function view(){
   var sec=blk>=8;
+  if(el("journeyProgress"))el("journeyProgress").style.display=sec?"none":"";
   ["card","count","shuffle"].forEach(function(id){el(id).style.display=sec?"none":""});
   document.querySelectorAll("#game .bar,#game .row").forEach(function(n){n.style.display=sec?"none":""});
   el("pact").style.display=blk===8?"block":"none";el("res").style.display=blk===9?"block":"none";
@@ -569,7 +570,7 @@ function renderResults(){
   var box=el("reslist");box.innerHTML="";var data=collect();
   var total=data.reduce(function(sum,b){return sum+b.items.length},0);
   var intro=document.createElement("div");intro.className="results-intro";
-  var strong=document.createElement("strong");strong.textContent=total?("Сохранено ответов: "+total):"Ваши общие открытия";intro.appendChild(strong);
+  var strong=document.createElement("strong");strong.textContent=total?("Карточек с ответами: "+total):"Ваши общие открытия";intro.appendChild(strong);
   var note=document.createElement("span");note.textContent=MODE==="room"?"Здесь собраны ответы из блоков, которые вы оба завершили.":"Все ваши ответы собраны в одном месте — возвращайтесь к ним в любое время.";intro.appendChild(note);box.appendChild(intro);
   if(!data.length){var e=document.createElement("p");e.className="lead";e.textContent=MODE==="room"?"Результаты откроются, когда вы оба завершите блок.":"Пока нет ответов. Откройте любой блок и запишите ответы на карточках.";box.appendChild(e);return}
   data.forEach(function(b){
