@@ -23,6 +23,10 @@ main{max-width:520px;margin:0 auto;padding:20px 18px 28px}
 h1{font-family:"Lora",Georgia,"Times New Roman",serif;font-weight:600;font-size:1.6rem;line-height:1.2;margin:8px 0 6px}
 .lead{color:var(--muted);font-size:.95rem;margin:0 0 18px}
 .block-room{margin-top:14px}
+.live-tally{background:#FFFDFC;border:1px solid #EEDDE0;border-radius:15px;padding:11px 13px;margin:0 0 13px}
+.live-tally>div{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:.78rem;font-weight:800;color:#527D6E}
+.live-tally>div span:last-child{color:#B56C80}
+.live-tally p{font-size:.68rem;color:#8A817D;margin:5px 0 0;line-height:1.4}
 .couple-overview{background:linear-gradient(125deg,#FFFDFC,#F8E8EB);border:1px solid #F0D9DE;border-radius:19px;padding:14px 15px;margin:0 0 17px;box-shadow:0 5px 14px rgba(115,75,72,.055)}
 .overview-top{display:flex;justify-content:space-between;align-items:center;gap:8px;color:#8D6470;font-size:.78rem;font-weight:700;margin-bottom:9px}
 .overview-top strong{color:#527D6E;font-size:.8rem}
@@ -264,6 +268,7 @@ h1{font-family:"Manrope",sans-serif;font-size:2.35rem;letter-spacing:-.045em;col
   </section>
   <div id="questionStage" style="display:none">
   <div class="stage-tools"><button class="link" id="allBlocks">← Все блоки</button><span id="stageName"></span></div>
+  <div class="live-tally" id="liveTally" aria-live="polite"><div><span id="myTally">Вы: 0 из 15</span><span id="partnerTally">Партнёр: 0 из 15</span></div><p id="tallyNote">Счётчик обновляется по мере заполнения ответов. Сами ответы остаются скрыты.</p></div>
   <div class="journey-progress" id="journeyProgress"><div class="journey-meta"><span id="journeyBlock">Блок 1 из 7</span><span id="journeyPercent">0%</span></div><div class="journey-track"><i id="journeyFill"></i></div></div>
   <div class="card" id="card" tabindex="0" aria-live="polite"></div>
   <div id="ans"></div>
@@ -322,7 +327,7 @@ var B=[null,["Что в моём характере тебя удивило, к�
 var INTRO="Этот блок для взрослых пар. Отвечайте честно и без осуждения.", BRIDGE="Вы уже узнали друг друга лучше. Дальше пойдёт самое интересное: быт, мечты, близость и то, что вы хотите изменить вместе.";
 var FB_CFG={apiKey:"AIzaSyCnLhxurSJ8s28GWYcjSjNe_pkgkiwTBrw",authDomain:"koloda-app.firebaseapp.com",projectId:"koloda-app",storageBucket:"koloda-app.firebasestorage.app",messagingSenderId:"886064865472",appId:"1:886064865472:web:b1f53db07c5e22ad744d25"};
 var blk=1, list=[], i=0, MODE=null, MEM={}, hideP={1:false,2:false};
-var db=null, UID=null, ROOM=null, DN={}, REV={}, FETCH={}, unsubs=[], finArmed=false;
+var db=null, UID=null, ROOM=null, DN={}, REV={}, FETCH={}, PRG={}, unsubs=[], finArmed=false, progressTimers={};
 var el=function(id){return document.getElementById(id)};
 function sget(k){try{var v=localStorage.getItem("kp_"+k);if(v!==null)return v}catch(e){}return MEM[k]||""}
 function sset(k,v){MEM[k]=v;try{localStorage.setItem("kp_"+k,v)}catch(e){}}
@@ -352,11 +357,15 @@ function clearR(){
   Object.keys(MEM).forEach(function(k){if(k.charAt(0)==="R")delete MEM[k]});
   try{var rm=[];for(var k=0;k<localStorage.length;k++){var key=localStorage.key(k);if(key.indexOf("kp_R")===0)rm.push(key)}rm.forEach(function(x){localStorage.removeItem(x)})}catch(e){}
 }
-function stopListen(){unsubs.forEach(function(u){try{u()}catch(e){}});unsubs=[]}
+function stopListen(){unsubs.forEach(function(u){try{u()}catch(e){}});unsubs=[];Object.keys(progressTimers).forEach(function(k){clearTimeout(progressTimers[k])});progressTimers={}}
 function listenRoom(){
   stopListen();
   var ref=db.collection("rooms").doc(ROOM.id), onErr=function(e){roomMsg(errText(e))};
   unsubs.push(ref.onSnapshot(function(d){if(d.exists){ROOM.members=d.data().members||[];afterSync()}},onErr));
+  unsubs.push(ref.collection("progress").onSnapshot(function(snap){
+    PRG={};snap.forEach(function(doc){var d=doc.data();if(!d||d.block<1||d.block>7)return;var o=PRG[d.block]||(PRG[d.block]={me:0,partner:0});if(d.uid===UID)o.me=d.count||0;else o.partner=d.count||0});
+    updateLiveTally();if(el("blockRoom").style.display!=="none")chips();
+  },onErr));
   unsubs.push(ref.collection("done").onSnapshot(function(snap){
     DN={};
     snap.forEach(function(doc){var d=doc.data();if(!d)return;var o=DN[d.block]||(DN[d.block]={me:false,partner:false,pname:""});
@@ -365,9 +374,25 @@ function listenRoom(){
   },onErr));
 }
 function afterSync(){
+  updateLiveTally();
   Object.keys(DN).forEach(function(b){var o=DN[b];if(o.me&&o.partner&&!REV[b]&&!FETCH[b])fetchPartner(+b,o.pname)});
   var t=el("ans").querySelector(".at");if(t&&DN[blk]&&DN[blk].me)t.readOnly=true;
-  if(MODE==="room"){renderFin();if(blk===9)renderResults();if(el("blockRoom").style.display!=="none")chips()}
+  if(MODE==="room"){renderFin();updateLiveTally();if(blk===9)renderResults();if(el("blockRoom").style.display!=="none")chips()}
+}
+function answerCount(b){var count=0;B[b].forEach(function(q,id){if(String(sget("R"+b+"_"+id+"_1")||"").trim())count++});return count}
+function publishProgress(b){
+  if(MODE!=="room"||!ROOM||!UID||DN[b]&&DN[b].me)return;
+  var count=answerCount(b),ref=db.collection("rooms").doc(ROOM.id).collection("progress").doc(b+"_"+UID);
+  ref.set({uid:UID,block:b,count:count,updated:Date.now()},{merge:true}).catch(function(e){roomMsg(errText(e))});
+}
+function scheduleProgress(b){if(MODE!=="room")return;clearTimeout(progressTimers[b]);progressTimers[b]=setTimeout(function(){publishProgress(b)},450)}
+function updateLiveTally(){
+  if(!el("liveTally"))return;
+  if(MODE!=="room"||blk>=8){el("liveTally").style.display="none";return}
+  el("liveTally").style.display="";var total=B[blk].length,pg=PRG[blk]||{},me=answerCount(blk),partner=pg.partner||0;
+  el("myTally").textContent="Вы: "+me+" из "+total;
+  el("partnerTally").textContent="Партнёр: "+partner+" из "+total;
+  el("tallyNote").textContent=(DN[blk]&&DN[blk].me)?"Вы завершили блок. Ждём, пока партнёр закончит.":"Количество ответов видно обоим, содержание ответов остаётся скрытым до завершения блока.";
 }
 function fetchPartner(b,pname){
   var pu=partnerUid();if(!pu)return;FETCH[b]=true;
@@ -385,7 +410,7 @@ function fetchPartner(b,pname){
 function finishBlock(b){
   var a={};B[b].forEach(function(q,id){a[id]=sget("R"+b+"_"+id+"_1")});
   var col=db.collection("rooms").doc(ROOM.id);
-  return col.collection("answers").doc(b+"_"+UID).set({uid:UID,block:b,a:a,ts:Date.now()}).then(function(){
+  return col.collection("progress").doc(b+"_"+UID).set({uid:UID,block:b,count:B[b].length,updated:Date.now()},{merge:true}).then(function(){return col.collection("answers").doc(b+"_"+UID).set({uid:UID,block:b,a:a,ts:Date.now()})}).then(function(){
     return col.collection("done").doc(b+"_"+UID).set({uid:UID,block:b,name:nmv(1)||"",ts:Date.now()});
   });
 }
@@ -460,7 +485,7 @@ function startGame(mode){
   el("roombar").style.display=mode==="room"?"":"none";
   if(mode==="room")el("rshow").textContent=ROOM.id;
   el("lead2").textContent=mode==="room"?"Отвечайте каждый на своём телефоне. Ответы откроются, когда вы оба завершите блок.":"Вытягивайте карточку и отвечайте оба — письменно или вслух. Потом обменяйтесь ответами.";
-  blk=1;chips();showBlockRoom();
+  PRG={};blk=1;chips();showBlockRoom();
 }
 
 /* ---------- карточки ---------- */
@@ -472,6 +497,7 @@ function make(n){
 }
 function qcount(){return list.filter(function(d){return !d.bridge&&!d.intro}).length}
 function showBlockRoom(){
+  el("liveTally").style.display="none";
   chips();
   el("blockRoom").style.display="";
   el("questionStage").style.display="none";
@@ -483,6 +509,7 @@ function openBlock(n){
 }
 function view(){
   var sec=blk>=8;
+  el("liveTally").style.display=sec?"none":"";
   el("blockRoom").style.display="none";el("questionStage").style.display="";
   el("journeyProgress").style.display=sec?"none":"";
   ["card","count","shuffle"].forEach(function(id){el(id).style.display=sec?"none":""});
@@ -580,6 +607,7 @@ function chips(){
     var st=blockStats(n),status=document.createElement("span");status.className="chip-status"+(st.done?" done":((st.mine||st.partner||st.answered>0)?" wait":""));
     var dot=document.createElement("i");dot.className="status-dot";status.appendChild(dot);
     var label=document.createElement("span");
+    if(MODE==="room"&&n<=7){var pg=PRG[n]||{};var my=pg.me||0,partner=pg.partner||0;desc.textContent="Вы: "+my+"/"+st.total+" · Партнёр: "+partner+"/"+st.total}
     if(st.done)label.textContent="Пройдено вместе";
     else if(MODE==="room"&&st.mine)label.textContent=st.partner?"Открываем ответы…":"Вы завершили · ждём партнёра";
     else if(MODE==="room"&&st.partner)label.textContent="Партнёр завершил · ваш ход";
@@ -624,7 +652,8 @@ function renderAns(){
   Array.prototype.forEach.call(a.querySelectorAll(".at"),function(t){
     var p=t.getAttribute("data-p"),key=K(blk,qid,p);
     t.value=sget(key);t.readOnly=room?!!locked:hideP[p];if(!room)t.classList.toggle("hid",hideP[p]);
-    t.addEventListener("input",function(){sset(key,t.value)});
+    t.addEventListener("input",function(){sset(key,t.value);updateLiveTally()});
+    t.addEventListener("change",function(){if(room)scheduleProgress(blk)});
   });
   Array.prototype.forEach.call(a.querySelectorAll(".hbtn"),function(h){
     var p=h.getAttribute("data-p");
