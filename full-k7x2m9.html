@@ -87,6 +87,20 @@ h1{font-family:"Lora",Georgia,"Times New Roman",serif;font-weight:600;font-size:
 .ansgrid.one{grid-template-columns:1fr}
 #fin{margin-top:14px}
 #fin p{color:var(--muted);font-size:.92rem;margin:8px 0}
+/* Единый акцентный цвет для всех основных кнопок */
+.btn,.btn.main{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn:hover:not(:disabled){filter:brightness(.96)}
+.btn:active:not(:disabled){transform:translateY(1px)}
+/* Модальное окно с кодом комнаты */
+#roomCodeModal{position:fixed;inset:0;z-index:1000;display:none;align-items:center;justify-content:center;padding:22px;background:rgba(18,12,30,.68)}
+#roomCodeModal.show{display:flex}
+#roomCodeModal .modal-card{width:min(100%,420px);background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:24px;padding:28px 22px;text-align:center;box-shadow:0 22px 70px rgba(0,0,0,.28)}
+#roomCodeModal h2{font-family:"Lora",Georgia,serif;font-size:1.45rem;margin:0 0 8px}
+#roomCodeModal .modal-hint{color:var(--muted);margin:0 0 18px}
+#roomCodeValue{font-size:clamp(1.35rem,6vw,1.8rem);font-weight:700;letter-spacing:.08em;padding:16px 8px;margin:0 0 18px;border:1px dashed var(--accent);border-radius:14px;overflow-wrap:anywhere;color:var(--accent)}
+#roomCodeStatus{min-height:22px;color:var(--muted);font-size:.85rem;margin:10px 0 0}
+#roomCodeModal .modal-actions{display:grid;gap:10px}
+
 </style>
 </head>
 <body>
@@ -144,6 +158,18 @@ h1{font-family:"Lora",Georgia,"Times New Roman",serif;font-weight:600;font-size:
 </section>
 </div>
 </main>
+<div id="roomCodeModal" role="dialog" aria-modal="true" aria-labelledby="roomCodeTitle">
+  <div class="modal-card">
+    <h2 id="roomCodeTitle">Комната создана!</h2>
+    <p class="modal-hint">Отправьте этот код партнёру, чтобы он подключился к игре.</p>
+    <div id="roomCodeValue"></div>
+    <div class="modal-actions">
+      <button class="btn main" id="roomCodeCopy">Скопировать код</button>
+      <button class="btn" id="roomCodeClose">Закрыть</button>
+    </div>
+    <p id="roomCodeStatus" aria-live="polite"></p>
+  </div>
+</div>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -217,6 +243,33 @@ function finishBlock(b){
   });
 }
 function saveName(){sset("nm1",el("myname").value.trim())}
+function showRoomCode(code){
+  el("roomCodeValue").textContent=code;
+  el("roomCodeStatus").textContent="";
+  el("roomCodeCopy").textContent="Скопировать код";
+  el("roomCodeModal").classList.add("show");
+}
+function closeRoomCode(){el("roomCodeModal").classList.remove("show")}
+async function copyRoomCode(){
+  var code=el("roomCodeValue").textContent;
+  try{
+    if(navigator.clipboard&&navigator.clipboard.writeText)await navigator.clipboard.writeText(code);
+    else throw new Error("clipboard-unavailable");
+    el("roomCodeStatus").textContent="Код скопирован. Отправьте его партнёру.";
+    el("roomCodeCopy").textContent="Скопировано!";
+  }catch(e){
+    var field=document.createElement("textarea");field.value=code;field.style.position="fixed";field.style.opacity="0";
+    document.body.appendChild(field);field.select();
+    var ok=false;try{ok=document.execCommand("copy")}catch(ignore){}
+    field.remove();
+    el("roomCodeStatus").textContent=ok?"Код скопирован. Отправьте его партнёру.":"Не удалось скопировать автоматически — выделите код и скопируйте вручную.";
+    if(ok)el("roomCodeCopy").textContent="Скопировано!";
+  }
+}
+el("roomCodeCopy").onclick=copyRoomCode;
+el("roomCodeClose").onclick=closeRoomCode;
+el("roomCodeModal").addEventListener("click",function(e){if(e.target===el("roomCodeModal"))closeRoomCode()});
+
 function enterRoom(code){
   if(sget("room")&&sget("room")!==code)clearR();
   ROOM={id:code,members:[]};DN={};REV={};FETCH={};sset("room",code);listenRoom();startGame("room");
@@ -225,7 +278,7 @@ el("rcreate").onclick=async function(){
   saveName();roomMsg("Подключаемся к Firebase…");
   try{await withTimeout(authP,12000,"auth-timeout");roomMsg("Создаём комнату…");
     var code=genCode();await withTimeout(db.collection("rooms").doc(code).set({members:[UID],created:Date.now()}),12000,"firestore-timeout");
-    enterRoom(code);roomMsg("")}
+    enterRoom(code);showRoomCode(code);roomMsg("")}
   catch(e){roomMsg(errText(e))}
 };
 el("rjoin").onclick=async function(){
@@ -361,6 +414,11 @@ function renderAns(){
 }
 
 /* ---------- завершение блока (игра вдвоём) ---------- */
+function missingAnswers(block){
+  return B[block].map(function(q,id){return id}).filter(function(id){
+    return !String(sget("R"+block+"_"+id+"_1")||"").trim();
+  });
+}
 function renderFin(){
   var f=el("fin");
   if(MODE!=="room"||blk>=8){f.innerHTML="";f.style.display="none";return}
@@ -375,14 +433,20 @@ function renderFin(){
     }else if(d.partner){add("p","Партнёр закончил. Загружаем ответы…")}
     else add("p","Ваши ответы отправлены и скрыты. Ждём, пока партнёр закончит…");
   }else if(onLast){
-    var b2=add("button",finArmed?"Точно завершить? Ответы изменить нельзя":"Завершить и скрыть ответы");b2.className="btn main";
-    b2.onclick=function(){
-      if(!finArmed){finArmed=true;renderFin();return}
-      b2.disabled=true;b2.textContent="Отправляем…";
-      withTimeout(finishBlock(blk),15000,"firestore-timeout").then(function(){finArmed=false;(DN[blk]=DN[blk]||{partner:false,pname:""}).me=true;
-        var t=el("ans").querySelector(".at");if(t)t.readOnly=true;renderFin()},function(e){finArmed=false;roomMsg(errText(e));renderFin()});
-    };
-    add("p","После этого ответы в блоке изменить нельзя. Партнёр увидит их, когда тоже завершит блок.");
+    var missing=missingAnswers(blk);
+    if(missing.length){
+      add("p","Пока нельзя отправить ответы: заполните все вопросы этого блока.");
+      add("p","Осталось без ответа: "+missing.length+". Вернитесь к пропущенным карточкам — ответы партнёру не отправятся, пока не заполните каждую.");
+    }else{
+      var b2=add("button",finArmed?"Точно завершить? Ответы изменить нельзя":"Завершить и скрыть ответы");b2.className="btn main";
+      b2.onclick=function(){
+        if(!finArmed){finArmed=true;renderFin();return}
+        b2.disabled=true;b2.textContent="Отправляем…";
+        withTimeout(finishBlock(blk),15000,"firestore-timeout").then(function(){finArmed=false;(DN[blk]=DN[blk]||{partner:false,pname:""}).me=true;
+          var t=el("ans").querySelector(".at");if(t)t.readOnly=true;renderFin()},function(e){finArmed=false;roomMsg(errText(e));renderFin()});
+      };
+      add("p","После этого ответы в блоке изменить нельзя. Партнёр увидит их, когда тоже завершит блок.");
+    }
   }
 }
 
