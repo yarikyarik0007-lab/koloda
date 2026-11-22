@@ -117,11 +117,11 @@ service cloud.firestore {
           && request.resource.data.uid == request.auth.uid
           && request.resource.data.block is int
           && request.resource.data.block >= 1 && request.resource.data.block <= 7
-          && progressId == string(request.resource.data.block) + '_' + request.auth.uid
+          && validBlockId(progressId, request.resource.data.block, request.auth.uid)
           && request.resource.data.count is int
           && request.resource.data.count >= 0 && request.resource.data.count <= 15
           && request.resource.data.updated is number
-          && !finished(roomId, string(request.resource.data.block), request.auth.uid);
+          && !finished(roomId, progressId.split('_')[0], request.auth.uid);
         allow delete: if false;
       }
 
