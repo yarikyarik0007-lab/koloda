@@ -28,6 +28,28 @@ service cloud.firestore {
       return exists(/databases/$(database)/documents/rooms/$(roomId)/done/$(blockKey + '_' + uid));
     }
 
+    function allAnswersPresent(roomId, doneId) {
+      let a = get(/databases/$(database)/documents/rooms/$(roomId)/answers/$(doneId)).data.a;
+      return a is map
+        && a.keys().hasAll(['0','1','2','3','4','5','6','7','8','9','10','11','12','13','14'])
+        && a.keys().hasOnly(['0','1','2','3','4','5','6','7','8','9','10','11','12','13','14'])
+        && a['0'] is string && a['0'].size() > 0
+        && a['1'] is string && a['1'].size() > 0
+        && a['2'] is string && a['2'].size() > 0
+        && a['3'] is string && a['3'].size() > 0
+        && a['4'] is string && a['4'].size() > 0
+        && a['5'] is string && a['5'].size() > 0
+        && a['6'] is string && a['6'].size() > 0
+        && a['7'] is string && a['7'].size() > 0
+        && a['8'] is string && a['8'].size() > 0
+        && a['9'] is string && a['9'].size() > 0
+        && a['10'] is string && a['10'].size() > 0
+        && a['11'] is string && a['11'].size() > 0
+        && a['12'] is string && a['12'].size() > 0
+        && a['13'] is string && a['13'].size() > 0
+        && a['14'] is string && a['14'].size() > 0;
+    }
+
     match /rooms/{roomId} {
       // Exact room-code lookup is needed to join; collection listing is blocked.
       // Room documents contain membership only, never answer text.
@@ -100,7 +122,8 @@ service cloud.firestore {
           && validBlockId(doneId, request.resource.data.block, request.auth.uid)
           && request.resource.data.name is string
           && request.resource.data.ts is number
-          && exists(/databases/$(database)/documents/rooms/$(roomId)/answers/$(doneId));
+          && exists(/databases/$(database)/documents/rooms/$(roomId)/answers/$(doneId))
+          && allAnswersPresent(roomId, doneId);
 
         allow delete: if false;
       }
