@@ -545,9 +545,10 @@ function draw(dir){
   el("prev").disabled=i===0&&blk===1;
   el("next").textContent=atEnd?(blk<lastBlock()?(blk===7?"К договорённостям":"К следующему блоку"):"Сначала"):(onBridge?(CHANNEL_URL?"В Telegram-канал":"Сначала"):"Дальше");
   renderAns();renderFin();
-  // После смены карточки возвращаем вопрос в видимую область экрана.
+  // После смены вопроса возвращаем страницу к шапке игры и названию «Колода для пар».
   requestAnimationFrame(function(){
-    var y=c.getBoundingClientRect().top+window.pageYOffset-14;
+    var brand=el("game").querySelector("h1");
+    var y=brand.getBoundingClientRect().top+window.pageYOffset-10;
     window.scrollTo({top:Math.max(0,y),behavior:"smooth"});
   });
 }
