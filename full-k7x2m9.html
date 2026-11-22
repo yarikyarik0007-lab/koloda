@@ -460,6 +460,11 @@ function draw(dir){
   el("prev").disabled=i===0&&blk===1;
   el("next").textContent=atEnd?(blk<lastBlock()?(blk===7?"К договорённостям":"К следующему блоку"):"Сначала"):(onBridge?(CHANNEL_URL?"В Telegram-канал":"Сначала"):"Дальше");
   renderAns();renderFin();
+  // После смены карточки возвращаем вопрос в видимую область экрана.
+  requestAnimationFrame(function(){
+    var y=c.getBoundingClientRect().top+window.pageYOffset-14;
+    window.scrollTo({top:Math.max(0,y),behavior:"smooth"});
+  });
 }
 function go(d){
   if(d<0&&i===0){if(blk>1){blk-=1;chips();list=make(blk);i=list.length-1;draw(-1)}return}
