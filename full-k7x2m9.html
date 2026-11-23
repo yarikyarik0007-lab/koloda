@@ -183,7 +183,9 @@ h1{font-family:"Manrope",sans-serif;font-size:2.35rem;letter-spacing:-.045em;col
 .local-btn .menu-icon{font-size:2rem;color:#D97791}
 .results-menu-btn{background:#F4D9E5;border-color:#EEC5D4;color:var(--ink)}
 .results-menu-btn .menu-icon{color:#B65D7A}
-#controw .btn{background:#FDF8F5;color:var(--sage-dark);border-color:var(--line)}
+#controw .btn{background:linear-gradient(115deg,#527D6E,#41695D);color:#fff;border:1px solid #527D6E;box-shadow:0 5px 13px rgba(65,105,93,.18)}
+#controw .btn:active{transform:translateY(1px);filter:brightness(.96)}
+#controw .btn:focus-visible{outline:3px solid #E9859A;outline-offset:3px}
 #lobby .small{font-size:.78rem;line-height:1.5;margin:12px 0}
 .privacy-note{text-align:center}
 .lobby-footer{text-align:center;color:#78827B;font-size:.95rem;margin:28px 12px 4px}
@@ -324,7 +326,7 @@ h1{font-family:"Manrope",sans-serif;font-size:2.35rem;letter-spacing:-.045em;col
       <button class="btn menu-btn join-btn" id="rjoin"><span>Войти по коду</span><span class="menu-arrow">›</span></button>
     </section>
     <button class="btn menu-btn local-btn" id="plocal"><span class="menu-icon">♡</span><span class="menu-label"><b>Играть с одного телефона</b><small>Проходите игру вдвоём на одном устройстве</small></span><span class="menu-arrow">›</span></button>
-    <div class="prow" id="controw" style="display:none"><button class="btn menu-btn" id="pcont">Продолжить игру в комнате</button></div>
+    <div class="prow" id="controw" style="display:none"><button class="btn menu-btn" id="pcont"><span class="menu-icon">♡</span><span>Продолжить игру в комнате</span><span class="menu-arrow">›</span></button></div>
   </div>
   <p class="count" id="rmsg2" aria-live="polite"></p>
   <section class="instagram-card">
