@@ -445,14 +445,15 @@ h1{font-family:"Manrope",sans-serif;font-size:2.35rem;letter-spacing:-.045em;col
     <div class="paywall-heart">♡</div>
     <p class="eyebrow">ВАШ ПУТЬ МОЖЕТ ПРОДОЛЖИТЬСЯ</p>
     <h2 id="paywallTitle">Понравилась демоверсия?</h2>
-    <p>Вы прошли первые два блока. Впереди ещё пять тем: совместная жизнь, мечты, важные разговоры и близость.</p>
-    <p><strong>Подпишитесь на Telegram-канал «Наедине»</strong>, чтобы открыть блоки 3–7 и продолжить игру вместе.</p>
+    <p>Вы прошли первые два блока — это только начало. Впереди ещё пять тем: совместная жизнь, мечты, важные разговоры и близость.</p>
+    <p><strong>Подпишитесь на Telegram-канал «Наедине»</strong>, чтобы получить доступ к продолжению и пройти оставшиеся темы вместе.</p>
     <div class="paywall-actions">
-      <a class="btn main" id="telegramChannel" href="https://t.me/zhenazekaa" target="_blank" rel="noopener noreferrer">Подписаться на Telegram-канал</a>
-      <button class="btn" id="paywallUnlock">Я подписался в Telegram — открыть продолжение</button>
-      <button class="link" id="paywallClose" type="button">Пока остаться в демоверсии</button>
+      <a class="btn main" id="telegramChannel" href="https://t.me/zhenazekaa" target="_blank" rel="noopener noreferrer">♡ Подписаться на канал</a>
+      <button class="btn" id="paywallUnlock" type="button" disabled aria-disabled="true">Автоматическая проверка скоро появится</button>
+      <button class="btn" id="paywallInvite" type="button">💌 Пригласить вторую половинку</button>
+      <button class="link" id="paywallClose" type="button">Вернуться к пройденным темам</button>
     </div>
-    <p class="paywall-note">После перехода в Telegram вернитесь сюда и нажмите «Я подписался в Telegram». Автоматическая проверка подписки через бота ещё подключается.</p>
+    <p class="paywall-note">Проверка подписки через бота ещё настраивается. Мы не будем открывать полную колоду только по нажатию кнопки — доступ должен подтверждаться подпиской.</p>
   </div>
 </div>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -479,10 +480,12 @@ function closePaywall(){el("paywallModal").classList.remove("show")}
 el("paywallClose").onclick=closePaywall;
 el("paywallModal").addEventListener("click",function(e){if(e.target===el("paywallModal"))closePaywall()});
 el("telegramChannel").href=CHANNEL_URL;
-el("paywallUnlock").onclick=function(){
-  try{localStorage.setItem("kp_full_access","1")}catch(e){}
-  FULL=true;
-  window.location.reload();
+el("paywallUnlock").onclick=function(){};
+el("paywallInvite").onclick=function(){
+  var data={title:"Наедине — вопросы для двоих",text:"Давай пройдём «Наедине» вместе ❤️ Это вопросы, которые помогают стать ближе друг к другу.",url:location.href};
+  if(navigator.share){navigator.share(data).catch(function(){});return}
+  try{navigator.clipboard.writeText(data.url).then(function(){el("paywallInvite").textContent="Ссылка скопирована 💚"},function(){el("paywallInvite").textContent="Скопируйте ссылку из адресной строки"})}
+  catch(e){el("paywallInvite").textContent="Скопируйте ссылку из адресной строки"}
 };
 
 /* ---------- Firebase ---------- */
