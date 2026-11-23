@@ -264,6 +264,18 @@ h1{font-family:"Manrope",sans-serif;font-size:2.35rem;letter-spacing:-.045em;col
 .chip.locked .chip-number,.chip.locked .chip-title{color:#A77D83}
 .chip.locked .chip-status{color:#B96579}
 @media(prefers-reduced-motion:reduce){.paywall-card{animation:none}}
+
+/* Форма пожеланий «Наедине» */
+.suggestion-card{margin:20px 0 4px;padding:19px 17px;border:1px solid #F0D9DE;border-radius:22px;background:linear-gradient(145deg,#FFFCF9,#F9E8EB);box-shadow:0 7px 18px rgba(115,75,72,.06)}
+.suggestion-card h3{font-family:"Lora",Georgia,serif;color:#31534A;font-size:1.18rem;margin:0 0 6px}
+.suggestion-card>p{font-size:.82rem;color:#78827B;line-height:1.5;margin:0 0 13px}
+.suggestion-card label{display:block;font-size:.78rem;font-weight:700;color:#536C62;margin:10px 0 6px}
+.suggestion-card select,.suggestion-card textarea{width:100%;font:inherit;color:#29443E;background:#FFFEFC;border:1px solid #EAD8D4;border-radius:14px;padding:12px}
+.suggestion-card textarea{min-height:105px;resize:vertical;line-height:1.5}
+.suggestion-card select:focus-visible,.suggestion-card textarea:focus-visible{outline:3px solid rgba(233,133,154,.22);border-color:#E99AAA}
+.suggestion-card .btn{width:100%;margin-top:11px;border-radius:16px}
+#suggestionStatus{min-height:20px;margin:9px 0 0;text-align:center;font-size:.78rem;color:#527D6E}
+
 </style>
 </head>
 <body>
@@ -339,6 +351,24 @@ h1{font-family:"Manrope",sans-serif;font-size:2.35rem;letter-spacing:-.045em;col
 <div id="reslist"></div>
 <div class="prow"><button class="btn" id="rdl">Скачать .txt</button><button class="btn main" id="rcopy">Скопировать всё</button></div>
 <p class="count" id="rmsg"></p>
+<div class="suggestion-card" id="suggestionCard">
+  <h3>💌 Есть идея для «Наедине»?</h3>
+  <p>Поделитесь пожеланием, предложите новую тему или расскажите, что можно улучшить. Мы читаем ваши сообщения!</p>
+  <form id="suggestionForm">
+    <label for="suggestionCategory">О чём хотите рассказать?</label>
+    <select id="suggestionCategory" required>
+      <option value="Идея для новых вопросов">Идея для новых вопросов</option>
+      <option value="Новая тема или колода">Новая тема или колода</option>
+      <option value="Улучшение игры">Улучшение игры</option>
+      <option value="Ошибка или проблема">Ошибка или проблема</option>
+      <option value="Другое пожелание">Другое пожелание</option>
+    </select>
+    <label for="suggestionMessage">Ваше пожелание</label>
+    <textarea id="suggestionMessage" maxlength="1000" minlength="5" required placeholder="Например: добавьте вопросы для пар на расстоянии…"></textarea>
+    <button class="btn main" id="suggestionSubmit" type="submit">Отправить пожелание 💚</button>
+    <p id="suggestionStatus" aria-live="polite"></p>
+  </form>
+</div>
 </section>
 </div>
 </main>
@@ -861,6 +891,34 @@ el("pclear").onclick=function(){var b=el("pclear");
   if(!armed){armed=true;b.textContent="Точно очистить?";setTimeout(function(){armed=false;b.textContent="Очистить"},4000);return}
   PK.forEach(function(k){el(k).value=""});pactSave();armed=false;b.textContent="Очистить";el("pmsg").textContent="Всё очищено."};
 pactLoad();
+
+/* ---------- пожелания пользователей ---------- */
+el("suggestionForm").addEventListener("submit",function(e){
+  e.preventDefault();
+  var message=el("suggestionMessage").value.trim();
+  var category=el("suggestionCategory").value;
+  var status=el("suggestionStatus"),button=el("suggestionSubmit");
+  if(message.length<5){status.textContent="Напишите чуть подробнее — хотя бы 5 символов.";return}
+  if(message.length>1000){status.textContent="Сообщение слишком длинное. Максимум 1000 символов.";return}
+  button.disabled=true;button.textContent="Отправляем…";status.textContent="";
+  authP.then(function(){
+    if(!db||!UID)throw new Error("nofirebase");
+    return db.collection("suggestions").add({
+      message:message,
+      category:category,
+      uid:UID,
+      createdAt:Date.now()
+    });
+  }).then(function(){
+    el("suggestionMessage").value="";
+    status.textContent="Спасибо! Ваше пожелание отправлено 💚";
+    button.textContent="Отправлено!";
+    setTimeout(function(){button.disabled=false;button.textContent="Отправить пожелание 💚"},2500);
+  }).catch(function(err){
+    status.textContent="Не получилось отправить. Проверьте интернет и попробуйте ещё раз.";
+    button.disabled=false;button.textContent="Попробовать снова";
+  });
+});
 window.addEventListener("pagehide",function(){if(MODE==="room")writePresence(false)});
 showLobby();
 </script>
