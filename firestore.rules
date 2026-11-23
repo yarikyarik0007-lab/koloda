@@ -50,6 +50,22 @@ service cloud.firestore {
         && a['14'] is string && a['14'].size() > 0;
     }
 
+    // Пользователи могут отправлять пожелания, но не читать чужие сообщения.
+    match /suggestions/{suggestionId} {
+      allow create: if signedIn()
+        && request.resource.data.keys().hasAll(['message', 'category', 'uid', 'createdAt'])
+        && request.resource.data.keys().hasOnly(['message', 'category', 'uid', 'createdAt'])
+        && request.resource.data.message is string
+        && request.resource.data.message.size() >= 5
+        && request.resource.data.message.size() <= 1000
+        && request.resource.data.category is string
+        && request.resource.data.category.size() >= 1
+        && request.resource.data.category.size() <= 80
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.createdAt is number;
+      allow read, update, delete: if false;
+    }
+
     match /rooms/{roomId} {
       // Exact room-code lookup is needed to join; collection listing is blocked.
       // Room documents contain membership only, never answer text.
