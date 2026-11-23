@@ -321,7 +321,6 @@ h1{font-family:"Manrope",sans-serif;font-size:2.35rem;letter-spacing:-.045em;col
       <button class="btn menu-btn join-btn" id="rjoin"><span>Войти по коду</span><span class="menu-arrow">›</span></button>
     </section>
     <button class="btn menu-btn local-btn" id="plocal"><span class="menu-icon">♡</span><span class="menu-label"><b>Играть с одного телефона</b><small>Проходите игру вдвоём на одном устройстве</small></span><span class="menu-arrow">›</span></button>
-    <button class="btn menu-btn results-menu-btn" id="openResults" type="button" onclick="blk=9;MODE='local';startGame('local');blk=9;chips();build()"><span class="menu-icon">♧</span><span>Результаты</span><span class="menu-arrow">›</span></button>
     <div class="prow" id="controw" style="display:none"><button class="btn menu-btn" id="pcont">Продолжить игру в комнате</button></div>
   </div>
   <p class="count" id="rmsg2" aria-live="polite"></p>
@@ -864,7 +863,7 @@ function renderFin(){
     if(d.partner&&REV[blk]){
       f.classList.add("both-done");
       add("p","Вы прошли этот этап вместе ♥ Теперь можно спокойно открыть ответы друг друга.");
-      var b=add("button","Смотреть результаты");b.className="btn main";b.onclick=function(){blk=9;chips();build()};
+      var b=add("button","Все ответы");b.className="btn main";b.onclick=function(){blk=9;chips();build()};
     }else if(d.partner){add("p","Партнёр закончил. Загружаем ответы…")}
     else add("p","♥ Отличная работа! Ваши ответы сохранены и скрыты. Теперь ждём партнёра — как только он завершит блок, ответы откроются здесь автоматически.");
   }else if(onLast){
