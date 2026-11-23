@@ -299,6 +299,9 @@ h1{font-family:"Manrope",sans-serif;font-size:2.35rem;letter-spacing:-.045em;col
 .letter-card .btn{width:100%;margin-top:12px}
 #letterStatus{min-height:18px;text-align:center;font-size:.77rem;color:#527D6E;margin:8px 0 0}
 
+
+/* На стартовом экране не показываем старую кнопку «Результаты» */
+#lobby .results-menu-btn,#lobby #openResults{display:none!important}
 </style>
 </head>
 <body>
@@ -656,6 +659,10 @@ function startGame(mode){
   el("lead2").textContent=mode==="room"?"Отвечайте каждый на своём телефоне. Ответы откроются, когда вы оба завершите блок.":"Вытягивайте карточку и отвечайте оба — письменно или вслух. Потом обменяйтесь ответами.";
   PRG={};blk=1;chips();showBlockRoom();
 }
+
+
+/* Защита от старой кнопки результатов в разметке главного экрана */
+document.querySelectorAll('#lobby .results-menu-btn, #lobby #openResults').forEach(function(node){node.remove()});
 
 /* ---------- карточки ---------- */
 function make(n){
