@@ -276,6 +276,29 @@ h1{font-family:"Manrope",sans-serif;font-size:2.35rem;letter-spacing:-.045em;col
 .suggestion-card .btn{width:100%;margin-top:11px;border-radius:16px}
 #suggestionStatus{min-height:20px;margin:9px 0 0;text-align:center;font-size:.78rem;color:#527D6E}
 
+
+/* Дополнительные тёплые элементы */
+.brand-inst{display:block;margin:0 0 3px;text-align:center;color:#B6A7A1;font-size:.58rem;letter-spacing:.12em;font-weight:600;opacity:.72}
+.instagram-card,.deck-teaser,.letter-card{margin:18px 0;padding:18px 16px;border:1px solid #F0D9DE;border-radius:21px;background:linear-gradient(145deg,#FFFCF9,#F9E8EB);box-shadow:0 6px 16px rgba(115,75,72,.045)}
+.instagram-card{text-align:center}
+.instagram-card h2,.deck-teaser h2{font-family:"Lora",Georgia,serif;color:#31534A;font-size:1.16rem;margin:3px 0 8px}
+.instagram-card>p:not(.eyebrow),.deck-teaser>p:last-child,.letter-card>p:not(.eyebrow){font-size:.82rem;line-height:1.55;color:#78827B;margin:0 0 10px}
+.instagram-card .instagram-invite{font-weight:700;color:#6E766E}
+.instagram-link{display:block;margin-top:13px;padding:12px 14px;border-radius:14px;background:#557F70;color:#fff;text-decoration:none;font-size:.82rem;font-weight:700}
+.deck-teaser{text-align:center;background:linear-gradient(145deg,#FFFEFC,#F5F0E9)}
+.deck-teaser-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0}
+.deck-teaser-grid span{padding:10px 8px;border:1px solid #EDE2DD;border-radius:13px;background:#FFFBF8;color:#66776D;font-size:.76rem;font-weight:700}
+.deck-teaser>p:last-child{margin:0}
+.privacy-note{padding:0 5px;text-align:center;line-height:1.55}
+.lobby-share{width:100%;margin:3px 0 8px;border-radius:16px}
+.room-code-extra{font-size:.78rem;line-height:1.5;color:#8A817D;margin:0 0 16px}
+.letter-card h3{font-family:"Lora",Georgia,serif;color:#31534A;font-size:1.18rem;margin:0 0 7px}
+.letter-card label{display:block;margin:12px 0 6px;color:#536C62;font-size:.78rem;font-weight:700}
+.letter-card textarea{width:100%;resize:vertical;min-height:85px;padding:12px;border:1px solid #EAD8D4;border-radius:13px;background:#FFFEFC;color:#29443E;font:inherit;line-height:1.5}
+.letter-card textarea:focus-visible{outline:3px solid rgba(233,133,154,.2);border-color:#E99AAA}
+.letter-card .btn{width:100%;margin-top:12px}
+#letterStatus{min-height:18px;text-align:center;font-size:.77rem;color:#527D6E;margin:8px 0 0}
+
 </style>
 </head>
 <body>
@@ -283,6 +306,7 @@ h1{font-family:"Manrope",sans-serif;font-size:2.35rem;letter-spacing:-.045em;col
 <div id="lobby" class="lobby-screen">
   <header class="brand">
     <div class="brand-heart">♡</div>
+    <span class="brand-inst">inst: galya_privet</span>
     <h1>Наедине</h1>
     <p class="lead">Время стать ближе друг к другу</p>
     <span class="brand-spark">♥</span>
@@ -301,7 +325,23 @@ h1{font-family:"Manrope",sans-serif;font-size:2.35rem;letter-spacing:-.045em;col
     <div class="prow" id="controw" style="display:none"><button class="btn menu-btn" id="pcont">Продолжить игру в комнате</button></div>
   </div>
   <p class="count" id="rmsg2" aria-live="polite"></p>
-  <p class="lead small privacy-note">В игре вдвоём партнёр увидит ваши ответы только после того, как вы оба завершите блок.</p>
+  <section class="instagram-card">
+    <p class="eyebrow">🌷 БУДЕМ ЗНАКОМЫ</p>
+    <h2>Немного больше обо мне</h2>
+    <p>В своём Instagram я рассказываю об отношениях на расстоянии, делюсь мыслями, личными историями и моментами своей жизни.</p>
+    <p class="instagram-invite">Буду рада, если заглянете и останетесь ❤️</p>
+    <a class="instagram-link" href="https://www.instagram.com/galya_privet/" target="_blank" rel="noopener noreferrer">Заглянуть в Instagram · @galya_privet</a>
+  </section>
+  <section class="deck-teaser">
+    <p class="eyebrow">КОГДА ЗАХОЧЕТСЯ ПРОДОЛЖЕНИЯ</p>
+    <h2>В будущем — новые темы</h2>
+    <div class="deck-teaser-grid">
+      <span>♡ О любви</span><span>✈ На расстоянии</span><span>✦ О будущем</span><span>☾ Без стеснения</span>
+    </div>
+    <p>Будем постепенно добавлять новые тематические колоды.</p>
+  </section>
+  <p class="lead small privacy-note">🔒 Ваши ответы конфиденциальны. Они не публикуются и не передаются посторонним. В игре вдвоём партнёр увидит ответы только после завершения блока обоими участниками.</p>
+  <button class="btn lobby-share" id="shareNaedine" type="button">♡ Поделиться «Наедине»</button>
   <footer class="lobby-footer">Играйте, делитесь, открывайте друг друга ♡</footer>
 </div>
 <div id="game" style="display:none">
@@ -351,6 +391,17 @@ h1{font-family:"Manrope",sans-serif;font-size:2.35rem;letter-spacing:-.045em;col
 <div id="reslist"></div>
 <div class="prow"><button class="btn" id="rdl">Скачать .txt</button><button class="btn main" id="rcopy">Скопировать всё</button></div>
 <p class="count" id="rmsg"></p>
+<div class="letter-card" id="letterCard">
+  <p class="eyebrow">ПОСЛЕ ВСЕХ РАЗГОВОРОВ</p>
+  <h3>💌 Письмо друг другу</h3>
+  <p>Оставьте друг другу несколько тёплых слов — то, что хочется сохранить после этой игры.</p>
+  <label for="letterOne">Письмо партнёра 1</label>
+  <textarea id="letterOne" rows="3" maxlength="1200" placeholder="Напиши то, что хочется сказать…"></textarea>
+  <label for="letterTwo">Письмо партнёра 2</label>
+  <textarea id="letterTwo" rows="3" maxlength="1200" placeholder="Теперь очередь второго партнёра…"></textarea>
+  <button class="btn main" id="copyLetters" type="button">Сохранить письма вместе 💚</button>
+  <p id="letterStatus" aria-live="polite"></p>
+</div>
 <div class="suggestion-card" id="suggestionCard">
   <h3>💌 Есть идея для «Наедине»?</h3>
   <p>Поделитесь пожеланием, предложите новую тему или расскажите, что можно улучшить. Мы читаем ваши сообщения!</p>
@@ -377,6 +428,7 @@ h1{font-family:"Manrope",sans-serif;font-size:2.35rem;letter-spacing:-.045em;col
     <h2 id="roomCodeTitle">Комната создана!</h2>
     <p class="modal-hint">Отправьте этот код партнёру, чтобы он подключился к игре.</p>
     <div id="roomCodeValue"></div>
+    <p class="room-code-extra">Сохраните код — он понадобится, чтобы вернуться в вашу комнату. Не теряйте его 💚</p>
     <div class="modal-actions">
       <button class="btn main" id="roomCodeCopy">Скопировать код</button>
       <button class="btn" id="roomCodeClose">Закрыть</button>
@@ -390,7 +442,7 @@ h1{font-family:"Manrope",sans-serif;font-size:2.35rem;letter-spacing:-.045em;col
     <p class="eyebrow">ВАШ ПУТЬ МОЖЕТ ПРОДОЛЖИТЬСЯ</p>
     <h2 id="paywallTitle">Понравилась демоверсия?</h2>
     <p>Вы прошли первые два блока. Впереди ещё пять тем: совместная жизнь, мечты, важные разговоры и близость.</p>
-    <p><strong>Подпишитесь на наш Instagram</strong>, чтобы поддержать «Наедине» и не пропускать новые вопросы и идеи для двоих.</p>
+    <p><strong>Подпишитесь на наш Telegram-канал</strong>, чтобы открыть продолжение игры и не пропускать новые темы для двоих.</p>
     <div class="paywall-actions">
       <a class="btn main" id="instagramFollow" href="https://www.instagram.com/galya_privet/" target="_blank" rel="noopener noreferrer">Перейти в Instagram</a>
       <button class="btn" id="paywallUnlock">Я подписался — продолжить</button>
@@ -641,8 +693,9 @@ function build(){view();if(blk>=8){if(blk===9)renderResults();return}list=make(b
 function draw(dir){
   var c=el("card");finArmed=false;
   if(i>=list.length){
+    var endPhrases=["Каждый разговор — ещё один шаг навстречу ❤️","Спасибо, что делитесь друг с другом. Впереди новые открытия 💌","Вы уже узнали друг о друге чуть больше. Сохраните это тепло 🌷","Не спешите — важные разговоры любят время 💚"];
     c.innerHTML='<div class="end"><p class="cat">Блок пройден</p><p class="q">Вы узнали друг о друге чуть больше.</p></div><p class="hint"></p>';
-    c.querySelector(".hint").textContent=(blk<lastBlock())?"Дальше — следующий блок.":"";
+    c.querySelector(".hint").textContent=blk<lastBlock()?endPhrases[(blk-1)%endPhrases.length]:"Спасибо, что провели это время вместе. Пусть ваши разговоры продолжаются ❤️";
   }else if(list[i].intro){
     c.innerHTML='<div><p class="cat">18+</p><p class="q"></p></div><p class="hint">Любую карточку можно пропустить без объяснений.</p>';
     c.querySelector(".q").textContent=list[i].q;
@@ -891,6 +944,22 @@ el("pclear").onclick=function(){var b=el("pclear");
   if(!armed){armed=true;b.textContent="Точно очистить?";setTimeout(function(){armed=false;b.textContent="Очистить"},4000);return}
   PK.forEach(function(k){el(k).value=""});pactSave();armed=false;b.textContent="Очистить";el("pmsg").textContent="Всё очищено."};
 pactLoad();
+
+
+/* ---------- приглашение поделиться и финальное письмо ---------- */
+el("shareNaedine").onclick=function(){
+  var shareData={title:"Наедине — вопросы для двоих",text:"Попробуйте «Наедине» — вопросы, которые помогают стать ближе друг к другу ❤️",url:location.href};
+  if(navigator.share){navigator.share(shareData).catch(function(){});return}
+  try{navigator.clipboard.writeText(shareData.url).then(function(){el("shareNaedine").textContent="Ссылка скопирована 💚"},function(){el("rmsg2").textContent="Не удалось скопировать ссылку. Скопируйте адрес сайта вручную."})}
+  catch(e){el("rmsg2").textContent="Скопируйте адрес сайта из строки браузера."}
+};
+el("copyLetters").onclick=function(){
+  var one=el("letterOne").value.trim(),two=el("letterTwo").value.trim(),status=el("letterStatus");
+  if(!one&&!two){status.textContent="Напишите хотя бы одно послание.";return}
+  var content="Письма друг другу · Наедине\n\nПартнёр 1:\n"+(one||"—")+"\n\nПартнёр 2:\n"+(two||"—");
+  try{navigator.clipboard.writeText(content).then(function(){status.textContent="Письма скопированы. Сохраните их или отправьте друг другу 💚"},function(){status.textContent="Не удалось скопировать. Выделите текст и скопируйте вручную."})}
+  catch(e){status.textContent="Не удалось скопировать. Выделите текст и скопируйте вручную."}
+};
 
 /* ---------- пожелания пользователей ---------- */
 el("suggestionForm").addEventListener("submit",function(e){
