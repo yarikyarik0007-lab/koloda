@@ -444,13 +444,13 @@ h1{font-family:"Manrope",sans-serif;font-size:2.35rem;letter-spacing:-.045em;col
     <p class="eyebrow">ВАШ ПУТЬ МОЖЕТ ПРОДОЛЖИТЬСЯ</p>
     <h2 id="paywallTitle">Понравилась демоверсия?</h2>
     <p>Вы прошли первые два блока. Впереди ещё пять тем: совместная жизнь, мечты, важные разговоры и близость.</p>
-    <p><strong>Подпишитесь на наш Telegram-канал</strong>, чтобы открыть продолжение игры и не пропускать новые темы для двоих.</p>
+    <p><strong>Подпишитесь на Telegram-канал «Наедине»</strong>, чтобы открыть блоки 3–7 и продолжить игру вместе.</p>
     <div class="paywall-actions">
-      <a class="btn main" id="telegramChannel" href="https://t.me/zhenazekaa" target="_blank" rel="noopener noreferrer">Перейти в Telegram-канал</a>
-      <button class="btn" id="paywallUnlock">Я подписался — продолжить</button>
+      <a class="btn main" id="telegramChannel" href="https://t.me/zhenazekaa" target="_blank" rel="noopener noreferrer">Подписаться на Telegram-канал</a>
+      <button class="btn" id="paywallUnlock">Я подписался в Telegram — открыть продолжение</button>
       <button class="link" id="paywallClose" type="button">Пока остаться в демоверсии</button>
     </div>
-    <p class="paywall-note">Автоматическая проверка подписки через Telegram-бота ещё подключается. Пока кнопка продолжения работает вручную и не подтверждает подписку.</p>
+    <p class="paywall-note">После перехода в Telegram вернитесь сюда и нажмите «Я подписался в Telegram». Автоматическая проверка подписки через бота ещё подключается.</p>
   </div>
 </div>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -784,7 +784,7 @@ function chips(){
     var dot=document.createElement("i");dot.className="status-dot";status.appendChild(dot);
     var label=document.createElement("span");
     if(MODE==="room"&&n<=7){var pg=PRG[n]||{};var my=pg.me||0,partner=pg.partner||0;desc.textContent="Вы: "+my+"/"+st.total+" · Партнёр: "+partner+"/"+st.total}
-    if(!FULL&&n>=3&&n<=7)label.textContent="Подпишитесь на Telegram — доступ к продолжению";
+    if(!FULL&&n>=3&&n<=7)label.textContent="Подписка на Telegram — доступ к полной версии";
     else if(st.done)label.textContent="Пройдено вместе";
     else if(MODE==="room"&&st.mine)label.textContent=st.partner?"Открываем ответы…":"Вы завершили · ждём партнёра";
     else if(MODE==="room"&&st.partner)label.textContent="Партнёр завершил · ваш ход";
